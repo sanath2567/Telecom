@@ -340,6 +340,17 @@ def api_admin_stats():
 def api_admin_users():
     return jsonify(db_utils.get_all_users())
 
+@app.route("/api/admin/renew_trial", methods=["POST"])
+@admin_required
+def api_admin_renew_trial():
+    body = request.get_json(force=True) or {}
+    uid = body.get("uid")
+    if not uid:
+        return jsonify({"error": "uid is required"}), 400
+    
+    db_utils.renew_trial(uid)
+    return jsonify({"success": True})
+
 @app.route("/api/user/usage")
 @firebase_required
 def api_user_usage():
@@ -348,6 +359,12 @@ def api_user_usage():
     usage["role"] = db_utils.get_user_role(user["uid"])
     return jsonify(usage)
 
+@app.route("/api/user/upgrade", methods=["POST"])
+@firebase_required
+def api_user_upgrade():
+    user = request.firebase_user
+    db_utils.upgrade_to_pro(user["uid"])
+    return jsonify({"success": True, "message": "Upgraded to PRO successfully"})
 
 # ─────────────────────────────────────────────
 # Run

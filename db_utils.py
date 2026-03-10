@@ -114,8 +114,19 @@ def get_all_users():
     
     docs = db.collection('users').order_by('created_at', direction=firestore.Query.DESCENDING).get()
     users = []
+    
+    # Batch fetch usage for efficiency
+    usage_docs = db.collection('user_usage').get()
+    usage_map = {doc.id: doc.to_dict() for doc in usage_docs}
+
     for doc in docs:
         d = doc.to_dict()
+        uid = d.get('uid')
+        
+        # Merge subscription status from usage map
+        usage = usage_map.get(uid, {})
+        d['subscription_status'] = usage.get('subscription_status', 'FREE')
+        
         # Handle firestore timestamp for JSON serialization
         if 'created_at' in d and hasattr(d['created_at'], 'strftime'):
             d['created_at'] = d['created_at'].strftime('%Y-%m-%d %H:%M:%S')
@@ -124,16 +135,23 @@ def get_all_users():
 
 def get_admin_stats():
     db = get_db()
-    if not db: return {"total_users": 0, "active_sessions": 0}
+    if not db: return {"total_users": 0, "active_sessions": 0, "total_revenue": 0, "premium_users": 0}
     
-    # Since Firebase Firestore doesn't have a simple COUNT() in the basic client without aggregation queries,
-    # we just get the length of the collections. This is fine for small/medium datasets.
     users = db.collection('users').get()
     sessions = db.collection('active_sessions').where('status', '==', 'ONLINE').get()
     
+    # Calculate revenue and premium counts from usage
+    usages = db.collection('user_usage').get()
+    premium_count = 0
+    for u in usages:
+        if u.to_dict().get('subscription_status') == 'PRO':
+            premium_count += 1
+            
     return {
         "total_users": len(users),
-        "active_sessions": len(sessions)
+        "active_sessions": len(sessions),
+        "premium_users": premium_count,
+        "total_revenue": premium_count * 2000
     }
 
 def get_usage(uid):
@@ -156,3 +174,24 @@ def increment_usage(uid, trial_type):
         ref.update({"churn_trials": firestore.Increment(1)})
     elif trial_type == "forecast":
         ref.update({"forecast_trials": firestore.Increment(1)})
+
+def renew_trial(uid):
+    db = get_db()
+    if not db: return
+    
+    ref = db.collection('user_usage').document(uid)
+    # Simply reset the trials back to 0
+    ref.update({
+        "churn_trials": 0,
+        "forecast_trials": 0,
+        "subscription_status": "FREE"
+    })
+
+def upgrade_to_pro(uid):
+    db = get_db()
+    if not db: return
+    
+    ref = db.collection('user_usage').document(uid)
+    ref.update({
+        "subscription_status": "PRO"
+    })

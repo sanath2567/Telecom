@@ -1125,35 +1125,48 @@ a {
 }
 
 .pricing-card {
-  padding: 32px;
-  text-align: center;
-  transition: transform 0.2s;
+  padding: 40px 32px;
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.pricing-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
 }
 
 .pricing-card.featured {
   border: 2px solid var(--accent);
-  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
-  transform: scale(1.02);
+  box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.15);
 }
 
 .plan-name {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 800;
   color: var(--text-muted);
   text-transform: uppercase;
-  margin-bottom: 20px;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
 }
 
 .plan-price {
-  font-size: 2.5rem;
+  font-size: 3rem;
   font-weight: 800;
+  color: var(--text-main);
   margin-bottom: 24px;
+  display: flex;
+  align-items: baseline;
 }
 
 .plan-price span {
   font-size: 1rem;
   font-weight: 500;
   color: var(--text-muted);
+  margin-left: 4px;
 }
 
 .plan-features {
@@ -1162,20 +1175,44 @@ a {
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  flex: 1;
 }
 
 .plan-features li {
   font-size: 0.95rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
+  color: var(--text-main);
 }
 
 .plan-features li::before {
   content: '✓';
   color: var(--green);
   font-weight: 800;
+  background: rgba(16, 185, 129, 0.1);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+
+.plan-option {
+  transition: all 0.2s ease;
+}
+
+.plan-option:hover {
+  background: var(--bg-hover) !important;
+  border-color: var(--accent) !important;
+}
+
+.plan-option.selected {
+  background: var(--accent-light) !important;
+  border-color: var(--accent) !important;
 }
 
 /* ─── Responsiveness Extras ────────────────────── */

@@ -19,7 +19,7 @@
 
         <nav class="sidebar-nav">
             <button class="nav-item active" id="nav-sessions" onclick="showAdminSection('sessions')">
-                <span>Active Sessions</span>
+                <span>Active Users</span>
             </button>
             <button class="nav-item" id="nav-users" onclick="showAdminSection('users')">
                 <span>All Registered Users</span>
@@ -61,6 +61,12 @@
                     <div class="kpi-value" id="kpiActiveNow" style="color:var(--green)">0</div>
                     <div class="kpi-trend" style="color:var(--green)">Live sessions</div>
                 </div>
+                <!-- Revenue KPI -->
+                <div class="kpi-card glass-card" style="border-left: 4px solid var(--accent);">
+                    <div class="kpi-label">Total Revenue</div>
+                    <div class="kpi-value" id="kpiRevenue">₹0</div>
+                    <div class="kpi-trend" id="kpiPremiumCount" style="color:var(--text-muted)">0 Premium Users</div>
+                </div>
             </div>
 
             <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:16px;">Active User Sessions</h2>
@@ -98,12 +104,14 @@
                                 <th>User Email</th>
                                 <th>Role</th>
                                 <th>Created At</th>
+                                <th>Category</th>
                                 <th>UID</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
+                                <td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
                                     users...</td>
                             </tr>
                         </tbody>
@@ -131,6 +139,8 @@
                 const data = await res.json();
                 document.getElementById('kpiTotalUsers').textContent = data.total_users;
                 document.getElementById('kpiActiveNow').textContent = data.active_sessions;
+                document.getElementById('kpiRevenue').textContent = '₹' + (data.total_revenue || 0).toLocaleString();
+                document.getElementById('kpiPremiumCount').textContent = (data.premium_users || 0) + ' Premium Users';
             } catch (e) { }
         }
 
@@ -147,10 +157,35 @@
                         <td style="font-weight:600">${u.email}</td>
                         <td><span class="status-badge ${u.role === 'ADMIN' ? 'status-good' : 'status-warning'}">${u.role}</span></td>
                         <td>${new Date(u.created_at).toLocaleString()}</td>
+                        <td>
+                            <span class="status-badge" style="${u.subscription_status === 'PRO' ? 'background:rgba(16,185,129,0.1); color:#10b981; border:1px solid #10b981;' : 'background:rgba(107,114,128,0.1); color:#6b7280; border:1px solid #6b7280;'}">
+                                ${u.subscription_status === 'PRO' ? 'PREMIUM' : 'NORMAL'}
+                            </span>
+                        </td>
                         <td style="font-family:monospace; font-size:0.8rem">${u.uid}</td>
+                        <td>
+                            ${u.role !== 'ADMIN' ? `<button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="renewUserTrial('${u.uid}')">Renew Trial</button>` : ''}
+                        </td>
                     </tr>
                 `).join('');
             } catch (err) { console.error(err); }
+        }
+
+        async function renewUserTrial(uid) {
+            if (!confirm("Are you sure you want to renew the trial for this user?")) return;
+            try {
+                const res = await fetch('/api/admin/renew_trial', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${fbToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ uid: uid })
+                });
+                if (!res.ok) throw new Error('Failed to renew trial');
+                alert('Trial renewed successfully!');
+                // Optionally reload users or just alert
+            } catch (err) {
+                console.error(err);
+                alert('Error renewing trial');
+            }
         }
 
         async function loadSessions() {
