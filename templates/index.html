@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Telco Operator Intelligence Platform</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="landing-body">
+  <nav class="landing-nav">
+    <div class="nav-brand">
+      <span class="brand-icon">◈</span>
+      <span class="brand-name">TelcoIQ</span>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="nav-link active">Home</a>
+      <a href="/about" class="nav-link">About</a>
+      <a href="/contact" class="nav-link">Contact</a>
+    </div>
+    <div class="nav-actions">
+      <a href="/login" class="btn btn-ghost">Sign In</a>
+      <a href="/signup" class="btn btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <main class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Enterprise Telecom<br />
+        <span class="gradient-text">Operations Intelligence</span>
+      </h1>
+      <p class="hero-subtitle">
+        The most powerful analytics suite for Indian network operators.<br />
+        Monitor performance, predict churn, and forecast demand with ML.
+      </p>
+      <div class="hero-cta">
+        <a href="/login" class="btn btn-primary btn-lg">Login to Dashboard</a>
+        <a href="/signup" class="btn btn-outline btn-lg">Partner With Us</a>
+      </div>
+    </div>
+  </main>
+
+  <section class="landing-features">
+    <h2 class="section-title">Built for Modern Operators</h2>
+    <div class="features-grid container">
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="radio" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Regional Monitoring</h3>
+        <p class="feature-desc">Real-time tracking of signal strength (dBm), latency, and city-level throughput metrics
+          across India.</p>
+      </div>
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="trending-down" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Predictive Churn</h3>
+        <p class="feature-desc">Sophisticated ML models identifying high-risk segments before they leave, with localized
+          risk scoring.</p>
+      </div>
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="activity" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Demand Forecasting</h3>
+        <p class="feature-desc">Advanced SARIMAX predictions for data throughput, enabling proactive network resource
+          allocation.</p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    lucide.createIcons();
+  </script>
+
+  <style>
+    .feature-icon-wrapper {
+      width: 64px;
+      height: 64px;
+      background: var(--accent-light);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 24px;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-icon {
+      width: 32px;
+      height: 32px;
+      color: var(--accent);
+    }
+
+    .feature-card:hover .feature-icon-wrapper {
+      transform: scale(1.1);
+      background: var(--accent);
+    }
+
+    .feature-card:hover .feature-icon {
+      color: #fff;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 24px;
+      margin: 0 40px;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      color: var(--accent);
+    }
+
+    .landing-features {
+      padding: 100px 24px;
+      background: #fff;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 60px;
+      color: var(--primary);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 32px;
+    }
+
+    .feature-card {
+      padding: 40px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-8px);
+    }
+
+    .feature-icon {
+      font-size: 3rem;
+      margin-bottom: 24px;
+    }
+
+    .feature-name {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .feature-desc {
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 768px) {
+      .nav-links {
+        display: none;
+      }
+    }
+  </style>
+</body>
+
+</html>

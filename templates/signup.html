@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up — Telco Operator Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2 class="auth-title">Create Account</h2>
+            <p class="auth-subtitle">Join the telecom analytics platform</p>
+
+            <div id="authError" class="auth-error" style="display:none"></div>
+
+            <form id="signupForm" novalidate>
+                <div class="form-group">
+                    <label for="username" class="form-label">Full Name</label>
+                    <input type="text" id="username" class="form-input" placeholder="Jane Doe" required />
+                    <span class="field-error" id="usernameError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="you@company.com" required />
+                    <span class="field-error" id="emailError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="operatorName" class="form-label">Operator</label>
+                    <select id="operatorName" class="form-input form-select" required>
+                        <option value="" disabled selected>Select your operator</option>
+                        <option value="Airtel">Airtel</option>
+                        <option value="BSNL">BSNL</option>
+                        <option value="Jio">Jio</option>
+                        <option value="Vi">Vi (Vodafone Idea)</option>
+                    </select>
+                    <span class="field-error" id="operatorError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="Min. 6 characters" required />
+                    <span class="field-error" id="passwordError"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="signupBtn">Create Account</button>
+            </form>
+            <p style="text-align:center; margin-top:16px; font-size:0.9rem; color:var(--text-muted)">
+                Already have an account? <a href="/login" style="color:var(--accent); font-weight:600">Sign in</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script>
+        let firebaseAuth = null;
+        fetch('/api/firebase-config').then(r => r.json()).then(cfg => {
+            firebase.initializeApp(cfg);
+            firebaseAuth = firebase.auth();
+        });
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('authError').style.display = 'none';
+            ['usernameError', 'emailError', 'operatorError', 'passwordError'].forEach(id => document.getElementById(id).textContent = '');
+
+            const un = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const op = document.getElementById('operatorName').value;
+            const pw = document.getElementById('password').value;
+
+            let ok = true;
+            if (!un) { document.getElementById('usernameError').textContent = 'Required'; ok = false; }
+            if (!email) { document.getElementById('emailError').textContent = 'Required'; ok = false; }
+            if (!op) { document.getElementById('operatorError').textContent = 'Required'; ok = false; }
+            if (!pw || pw.length < 6) { document.getElementById('passwordError').textContent = 'Min 6 chars'; ok = false; }
+            if (!ok) return;
+
+            const btn = document.getElementById('signupBtn');
+            btn.disabled = true;
+
+            try {
+                const cred = await firebaseAuth.createUserWithEmailAndPassword(email, pw);
+                // Persist operator in displayName as "Name|Operator"
+                const combinedName = `${un}|${op}`;
+                await cred.user.updateProfile({ displayName: combinedName });
+                const token = await cred.user.getIdToken();
+                sessionStorage.setItem('fbToken', token);
+                sessionStorage.setItem('fbUser', JSON.stringify({ email: cred.user.email, uid: cred.user.uid, displayName: combinedName, operator: op }));
+                window.location.href = '/dashboard';
+            } catch (err) {
+                document.getElementById('authError').textContent = err.message || 'Signup failed';
+                document.getElementById('authError').style.display = 'block';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

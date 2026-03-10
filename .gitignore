@@ -1,0 +1,19 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Sensitive Files
+serviceAccountKey.json
+*.log
+*.pot
+*.pyc
+__pycache__/
+
+# OS Files
+.DS_Store
+Thumbs.db

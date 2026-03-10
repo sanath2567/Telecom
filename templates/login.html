@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — Telco Operator Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="auth-subtitle">Sign in to your analytics dashboard</p>
+
+            <div id="authError" class="auth-error" style="display:none"></div>
+
+            <form id="loginForm" novalidate>
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="you@company.com" required />
+                    <span class="field-error" id="emailError"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-input" placeholder="••••••••" required />
+                    <span class="field-error" id="passwordError"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-full" id="loginBtn">Sign In</button>
+            </form>
+            <p style="text-align:center; margin-top:16px; font-size:0.9rem; color:var(--text-muted)">
+                Don't have an account? <a href="/signup" style="color:var(--accent); font-weight:600">Create one</a>
+            </p>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script>
+        let firebaseAuth = null;
+        fetch('/api/firebase-config').then(r => r.json()).then(cfg => {
+            firebase.initializeApp(cfg);
+            firebaseAuth = firebase.auth();
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            document.getElementById('authError').style.display = 'none';
+            const email = document.getElementById('email').value.trim();
+            const pw = document.getElementById('password').value;
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+
+            try {
+                const cred = await firebaseAuth.signInWithEmailAndPassword(email, pw);
+                const token = await cred.user.getIdToken();
+                sessionStorage.setItem('fbToken', token);
+                sessionStorage.setItem('fbUser', JSON.stringify({ email: cred.user.email, uid: cred.user.uid, displayName: cred.user.displayName }));
+                window.location.href = '/dashboard';
+            } catch (err) {
+                document.getElementById('authError').textContent = err.message || 'Login failed';
+                document.getElementById('authError').style.display = 'block';
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

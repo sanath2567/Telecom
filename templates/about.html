@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us - TelcoIQ</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="landing-body">
+    <nav class="landing-nav">
+        <div class="nav-brand">
+            <span class="brand-icon">◈</span>
+            <span class="brand-name">TelcoIQ</span>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/about" class="nav-link active">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+        </div>
+        <div class="nav-actions">
+            <a href="/login" class="btn btn-ghost">Sign In</a>
+            <a href="/signup" class="btn btn-primary">Get Started</a>
+        </div>
+    </nav>
+
+    <main class="about-container">
+        <section class="about-hero">
+            <div class="container">
+                <h1 class="hero-title-small">About TelcoIQ</h1>
+                <h2 class="hero-main-title">Redefining Telecom Intelligence for the <span class="gradient-text">Next
+                        Generation</span></h2>
+                <p class="hero-text">
+                    TelcoIQ is building the intelligence layer for India's telecommunications infrastructure.
+                    By bridging the gap between raw network data and executive decision-making, we empower operators
+                    to deliver world-class connectivity.
+                </p>
+            </div>
+        </section>
+
+        <section class="stagger-section">
+            <div class="container stagger-grid">
+                <div class="stagger-content">
+                    <div class="tag">Our Vision</div>
+                    <h3 class="stagger-title">Universal Connectivity, Smarter Operations</h3>
+                    <p class="stagger-text">
+                        We believe that connectivity is a fundamental right. Our platform ensures that operators like
+                        Airtel, Jio, and BSNL can maximize their network availability while minimizing operational
+                        overhead
+                        through automated, predictive analytics.
+                    </p>
+                    <ul class="stagger-list">
+                        <li><i data-lucide="check-circle"></i> Real-time Network Health Monitoring</li>
+                        <li><i data-lucide="check-circle"></i> AI-Driven Customer Retention</li>
+                        <li><i data-lucide="check-circle"></i> Proactive Infrastructure Scaling</li>
+                    </ul>
+                </div>
+                <div class="stagger-visual glass-card">
+                    <div class="visual-placeholder"><i data-lucide="cpu"
+                            style="width:48px;height:48px;color:var(--accent)"></i></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="tech-stack">
+            <div class="container">
+                <div class="tech-header">
+                    <h2 class="tech-title">Our Technology</h2>
+                    <p class="tech-subtitle">Precision engineering meets massive scale data processing.</p>
+                </div>
+                <div class="tech-grid">
+                    <div class="tech-card glass-card">
+                        <i data-lucide="bar-chart-3" class="tech-icon"></i>
+                        <h4>SARIMAX Models</h4>
+                        <p>Advanced seasonal demand forecasting for gigabit-scale data throughput.</p>
+                    </div>
+                    <div class="tech-card glass-card">
+                        <i data-lucide="shield-check" class="tech-icon"></i>
+                        <h4>ML Scoring</h4>
+                        <p>Proprietary algorithms for hyper-accurate churn risk classification.</p>
+                    </div>
+                    <div class="tech-card glass-card">
+                        <i data-lucide="map-pin" class="tech-icon"></i>
+                        <h4>Geo-Analytics</h4>
+                        <p>Localized network performance tracking at the city and area level.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>lucide.createIcons();</script>
+
+    <style>
+        .about-container {
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .about-hero {
+            padding: 120px 0 80px;
+            text-align: center;
+        }
+
+        .hero-title-small {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .hero-main-title {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 24px;
+            color: var(--primary);
+        }
+
+        .hero-text {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Stagger Section */
+        .stagger-section {
+            padding: 100px 0;
+        }
+
+        .stagger-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 60px;
+            align-items: center;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--accent-light);
+            color: var(--accent);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .stagger-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+        }
+
+        .stagger-text {
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 32px;
+        }
+
+        .stagger-list {
+            list-style: none;
+        }
+
+        .stagger-list li {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .stagger-list li i {
+            color: var(--green);
+            width: 20px;
+            height: 20px;
+        }
+
+        .stagger-visual {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .stagger-visual::after {
+            content: '';
+            position: absolute;
+            inset: -20px;
+            background: var(--accent-light);
+            z-index: -1;
+            border-radius: var(--radius-lg);
+            transform: rotate(2deg);
+        }
+
+        /* Tech Grid */
+        .tech-stack {
+            padding: 100px 0;
+            background: var(--bg-hover);
+        }
+
+        .tech-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .tech-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+
+        .tech-subtitle {
+            color: var(--text-muted);
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .tech-card {
+            padding: 40px;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .tech-card:hover {
+            background: #fff;
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .tech-icon {
+            width: 40px;
+            height: 40px;
+            color: var(--accent);
+            margin-bottom: 24px;
+        }
+
+        .tech-card h4 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .tech-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            margin: 0 40px;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: var(--accent);
+        }
+
+        @media (max-width: 900px) {
+            .stagger-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-main-title {
+                font-size: 2.2rem;
+            }
+        }
+    </style>
+</body>
+
+</html>

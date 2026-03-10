@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Telco Operator Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="brand-icon">◈</span>
+            <span class="brand-name">TelcoIQ</span>
+        </div>
+
+        <div class="sidebar-user" id="sidebarUser">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div>
+                <div class="user-name" id="userName">Loading...</div>
+                <div class="user-role">Analyst</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" id="nav-overview" onclick="showSection('overview')">
+                <span>Dashboard Overview</span>
+            </button>
+            <button class="nav-item" id="nav-regions" onclick="showSection('regions')">
+                <span>Region Monitoring</span>
+            </button>
+            <button class="nav-item" id="nav-churn" onclick="showSection('churn')">
+                <span>Churn Prediction</span>
+            </button>
+            <button class="nav-item" id="nav-forecast" onclick="showSection('forecast')">
+                <span>Demand Forecasting</span>
+            </button>
+            <button class="nav-item" id="nav-operators" onclick="showSection('operators')">
+                <span>Operator Performance</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="nav-item" style="color:var(--red)" onclick="handleLogout()">
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="top-header">
+            <div>
+                <h1 class="page-title" id="pageTitle">Dashboard Overview</h1>
+                <p class="page-subtitle" id="pageSubtitle">Operational intelligence at a glance</p>
+            </div>
+            <div class="header-right">
+                <div
+                    style="display:flex;align-items:center;gap:6px;background:#dcfce7;color:#166534;padding:4px 10px;border-radius:20px;font-weight:600;font-size:0.75rem;">
+                    <span style="width:6px;height:6px;background:#166534;border-radius:50%"></span> Live
+                </div>
+                <div id="headerTime"></div>
+            </div>
+        </header>
+
+        <!-- ────────────────────────────────────────────── -->
+        <!-- SECTION: Overview                             -->
+        <!-- ────────────────────────────────────────────── -->
+        <section id="section-overview" class="dash-section">
+            <div class="kpi-grid">
+                <div class="kpi-card glass-card">
+                    <div class="kpi-label">Total Customers</div>
+                    <div class="kpi-value" id="kpiTotal">—</div>
+                    <div class="kpi-trend" style="color:var(--green)">Across all regions</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-label">Active Cities</div>
+                    <div class="kpi-value" id="kpiCities">—</div>
+                    <div class="kpi-trend" style="color:var(--text-muted)" id="kpiStates">— states covered</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-label">High-Risk Churn Users</div>
+                    <div class="kpi-value" id="kpiChurn" style="color:var(--red)">—</div>
+                    <div class="kpi-trend" style="color:var(--red)">Require immediate action</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-label">Avg. Network Usage</div>
+                    <div class="kpi-value" id="kpiUsage" style="color:var(--cyan)">—</div>
+                    <div class="kpi-trend" id="kpiTrend" style="color:var(--green)">Demand trend: —%</div>
+                </div>
+            </div>
+
+            <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:16px;">Operator Snapshot</h2>
+            <div class="op-perf-grid" id="operatorSnapshot"></div>
+
+            <h2 style="font-size:1.1rem;font-weight:600;margin-top:32px;margin-bottom:16px;">Recent Customers</h2>
+            <div class="table-wrapper">
+                <div style="overflow-x:auto;">
+                    <table class="data-table" id="customerTable">
+                        <thead>
+                            <tr>
+                                <th>Customer ID</th>
+                                <th>City</th>
+                                <th>Plan Details</th>
+                                <th>Months Active</th>
+                                <th>Risk Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
+                                    customer list...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer"
+                    style="padding:16px; border-top:1px solid var(--bg-hover); display:flex; justify-content:center;">
+                    <button id="loadAllCustomersBtn" class="btn btn-secondary" onclick="loadAllCustomers()">Load Full
+                        Operator Dataset</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ────────────────────────────────────────────── -->
+        <!-- SECTION: Regions                              -->
+        <!-- ────────────────────────────────────────────── -->
+        <section id="section-regions" class="dash-section" style="display:none">
+            <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:20px;">Region Monitoring</h2>
+            <div class="table-wrapper">
+                <div class="table-controls">
+                    <input type="text" id="regionSearch" class="table-search"
+                        placeholder="Search state, city, or area..." oninput="filterRegionTable()" />
+                    <div style="font-size:0.85rem;color:var(--text-muted);" id="regionCount"></div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="data-table" id="regionTable">
+                        <thead>
+                            <tr>
+                                <th>State</th>
+                                <th>City</th>
+                                <th>Area</th>
+                                <th>Customers</th>
+                                <th>Signal (dBm)</th>
+                                <th>Latency (ms)</th>
+                                <th>Throughput (Mbps)</th>
+                                <th>Churn</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="regionTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
+                                    region data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ────────────────────────────────────────────── -->
+        <!-- SECTION: Predictor                            -->
+        <!-- ────────────────────────────────────────────── -->
+        <section id="section-churn" class="dash-section" style="display:none">
+            <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:20px;">Churn & Latency Predictor</h2>
+            <div class="two-col-layout">
+                <div class="input-panel glass-card">
+                    <h3 class="panel-title">Select Region</h3>
+                    <div class="form-group" style="display:none;">
+                        <label class="form-label">Operator</label>
+                        <input type="text" id="churnOperator" class="form-input" disabled />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        <select id="churnState" class="form-input form-select">
+                            <option value="" disabled selected>Select state</option>
+                        </select>
+                    </div>
+                    <div class="form-row" style="display:flex; gap:12px; margin-bottom:16px;">
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                            <label class="form-label">Network Type</label>
+                            <select id="churnNetwork" class="form-input form-select">
+                                <option value="4G">4G</option>
+                                <option value="5G">5G</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                            <label class="form-label">Plan Type</label>
+                            <select id="churnPlan" class="form-input form-select">
+                                <option value="Monthly Plan">Monthly Plan</option>
+                                <option value="3 Months Plan">3 Months Plan</option>
+                                <option value="Yearly Plan">Yearly Plan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row" style="display:flex; gap:12px; margin-bottom:16px;">
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                            <label class="form-label" title="Negative value (e.g. -70)">Signal (dBm)</label>
+                            <input type="number" id="churnSignal" class="form-input" value="-85" />
+                        </div>
+                        <div class="form-group" style="flex:1; margin-bottom:0;">
+                            <label class="form-label">Months Active</label>
+                            <input type="number" id="churnMonths" class="form-input" value="12" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Issues Resolved</label>
+                        <input type="number" id="churnIssues" class="form-input" value="0" />
+                    </div>
+                    <button class="btn btn-primary btn-full" id="churnBtn" onclick="runChurnPrediction()">Run
+                        Prediction</button>
+                </div>
+
+                <div class="results-area" id="churnResults" style="display:none">
+                    <div class="result-kpis" style="grid-template-columns: repeat(3, 1fr);">
+                        <div class="result-kpi glass-card">
+                            <div class="rkpi-label">ML Predicted Latency</div>
+                            <div class="rkpi-value" id="rLatency" style="color:var(--cyan)">— ms</div>
+                        </div>
+                        <div class="result-kpi glass-card">
+                            <div class="rkpi-label">Churn Probability</div>
+                            <div class="rkpi-value" id="rChurnRate" style="color:var(--red)">—</div>
+                        </div>
+                        <div class="result-kpi glass-card" id="confidenceWrapper">
+                            <div class="rkpi-label">Model Confidence Score</div>
+                            <div class="rkpi-value" id="rConfidence" style="color:var(--green)">—</div>
+                        </div>
+                    </div>
+
+                    <div class="risk-cards">
+                        <div class="risk-card risk-low">
+                            <div class="risk-val" id="rLow" style="color:var(--green)">—</div>
+                            <div class="risk-label">Low Risk</div>
+                        </div>
+                        <div class="risk-card risk-mid">
+                            <div class="risk-val" id="rMid" style="color:var(--yellow)">—</div>
+                            <div class="risk-label">Medium Risk</div>
+                        </div>
+                        <div class="risk-card risk-high">
+                            <div class="risk-val" id="rHigh" style="color:var(--red)">—</div>
+                            <div class="risk-label">High Risk</div>
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper glass-card">
+                        <h3 class="chart-title">Risk Distribution</h3>
+                        <div class="chart-area"><canvas id="churnChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="churnEmpty">
+                    <p>Enter user specifications (Signal, Network, Plan, etc.) to predict Churn and Latency.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ────────────────────────────────────────────── -->
+        <!-- SECTION: Forecast                             -->
+        <!-- ────────────────────────────────────────────── -->
+        <section id="section-forecast" class="dash-section" style="display:none">
+            <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:20px;">Demand Forecasting</h2>
+            <div class="two-col-layout">
+                <div class="input-panel glass-card">
+                    <h3 class="panel-title">Configure Forecast</h3>
+                    <div class="form-group">
+                        <label class="form-label">Operator</label>
+                        <select id="fcOperator" class="form-input form-select">
+                            <option value="">All Operators</option>
+                            <option>Airtel</option>
+                            <option>BSNL</option>
+                            <option>Jio</option>
+                            <option>Vi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        <select id="fcState" class="form-input form-select" onchange="loadFcCities()">
+                            <option value="" disabled selected>Select state</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <select id="fcCity" class="form-input form-select" onchange="loadFcAreas()" disabled>
+                            <option value="" disabled selected>Select city</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Area</label>
+                        <select id="fcArea" class="form-input form-select" disabled>
+                            <option value="" disabled selected>Select area</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Forecast Duration</label>
+                        <div class="duration-group" id="durationGroup">
+                            <button class="duration-btn active" data-days="30" onclick="selectDuration(this)">30
+                                Days</button>
+                            <button class="duration-btn" data-days="60" onclick="selectDuration(this)">60 Days</button>
+                            <button class="duration-btn" data-days="90" onclick="selectDuration(this)">90 Days</button>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="forecastBtn" onclick="runForecast()"
+                        style="margin-top:8px">Generate Forecast</button>
+                </div>
+
+                <div class="results-area" id="forecastResults" style="display:none">
+                    <div class="result-kpis">
+                        <div class="result-kpi glass-card">
+                            <div class="rkpi-label">Avg. Daily Demand</div>
+                            <div class="rkpi-value text-blue" id="fcAvg">—</div>
+                        </div>
+                        <div class="result-kpi glass-card">
+                            <div class="rkpi-label">Peak Demand</div>
+                            <div class="rkpi-value text-purple" id="fcPeak" style="color:var(--accent)">—</div>
+                        </div>
+                        <div class="result-kpi glass-card">
+                            <div class="rkpi-label">Growth Trend</div>
+                            <div class="rkpi-value text-cyan" id="fcGrowth" style="color:var(--cyan)">—</div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper glass-card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                            <h3 class="chart-title" style="margin:0">Demand Trajectory</h3>
+                            <span id="fcPeakDate"
+                                style="background:var(--accent-light);color:var(--accent);padding:4px 10px;border-radius:4px;font-size:0.8rem;font-weight:600"></span>
+                        </div>
+                        <div class="chart-area" style="height:350px"><canvas id="forecastChart"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="empty-state" id="forecastEmpty">
+                    <p>Configure region and duration to forecast network demand.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ────────────────────────────────────────────── -->
+        <!-- SECTION: Operators                            -->
+        <!-- ────────────────────────────────────────────── -->
+        <section id="section-operators" class="dash-section" style="display:none">
+            <h2 style="font-size:1.2rem;font-weight:600;margin-bottom:20px;">Operator Performance</h2>
+            <div class="result-kpis" id="opPerfCards" style="flex-wrap:wrap; display:flex; gap:20px;">
+                <!-- Operator Cards Inserted Here -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ────────────────────────────────────────────── -->
+    <!-- MODAL: Force Operator Selection (Legacy Users) -->
+    <!-- ────────────────────────────────────────────── -->
+    <div id="legacyOpModal" class="modal-overlay" style="display:none">
+        <div class="modal-card glass-card">
+            <h2 class="modal-title">Complete Your Profile</h2>
+            <p class="modal-subtitle">To provide accurate analytics, please select your assigned operator.</p>
+
+            <div class="form-group" style="margin-top:24px">
+                <label class="form-label">Operator</label>
+                <select id="legacyOperatorSelect" class="form-input form-select">
+                    <option value="" disabled selected>Select your operator</option>
+                    <option value="Airtel">Airtel</option>
+                    <option value="BSNL">BSNL</option>
+                    <option value="Jio">Jio</option>
+                    <option value="Vi">Vi (Vodafone Idea)</option>
+                </select>
+            </div>
+
+            <button id="saveLegacyOpBtn" class="btn btn-primary btn-full" onclick="saveLegacyOperator()"
+                style="margin-top:16px">
+                Save & Continue
+            </button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+
+</html>
