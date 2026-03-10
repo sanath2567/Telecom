@@ -404,15 +404,9 @@ def load_ml_models():
             except Exception as e:
                 print(f"[DataUtils] Failed to load Churn model for {key}: {e}")
 
-    # Load Forecasting Dictionary
-    global _FORECAST_MODELS
-    dict_path = os.path.join(DATA_DIR, "telecom_models_dictionary.pkl")
-    if os.path.exists(dict_path):
-        try:
-            _FORECAST_MODELS = joblib.load(dict_path)
-            print(f"[DataUtils] Loaded Forecast Dictionary with {len(_FORECAST_MODELS)} keys")
-        except Exception as e:
-            print(f"[DataUtils] Failed to load Forecast Dictionary: {e}")
+    # Giant forecast dictionary loading removed to save RAM for Free Tier deployment.
+    # Models are now loaded lazily in generate_forecast().
+    print("[DataUtils] Forecast models will be loaded lazily on demand.")
 
 def predict_churn_latency(operator: str, state: str, network_type: str, plan_type: str, signal_dbm: float, months_active: int, issues_resolved: int):
     """
@@ -505,7 +499,23 @@ def generate_forecast(operator: str, state: str, city: str, area: str, days: int
     # 1. IDENTIFY MODEL
     # Keys in the dict are "City_Operator" (e.g., Guntur_Airtel)
     model_key = f"{city}_{operator}"
+    
+    # LAZY LOADING: Load specific model from disk if not in cache
+    global _FORECAST_MODELS
     model_entry = _FORECAST_MODELS.get(model_key)
+    
+    if not model_entry:
+        model_path = os.path.join(DATA_DIR, "models", "forecast", f"{model_key}.pkl")
+        if os.path.exists(model_path):
+            try:
+                import joblib
+                model_entry = joblib.load(model_path)
+                # Optional: Cache it to avoid repeated disk reads (limited cache for RAM safety)
+                if len(_FORECAST_MODELS) < 5: # Keep up to 5 models in RAM
+                    _FORECAST_MODELS[model_key] = model_entry
+                print(f"[DataUtils] Lazily loaded forecast model: {model_key}")
+            except Exception as e:
+                print(f"[DataUtils] Failed to lazily load {model_key}: {e}")
     
     # Starting date (today/tomorrow)
     today = datetime.now()
