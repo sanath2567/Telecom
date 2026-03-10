@@ -169,6 +169,27 @@ def load_datasets():
         df["usage"] = 100 - (df["latency_score"] - df["latency_score"].min()) / \
                       (df["latency_score"].max() - df["latency_score"].min()) * 100
 
+        # ─────────────────────────────────────────────
+        # Calibration: Realistic 5G Adoption (March 2026)
+        # ─────────────────────────────────────────────
+        # Targets: Airtel 58%, Jio 46%, Vi 12.7%, BSNL 10%
+        target_5g_rates = {
+            "airtel": 0.58,
+            "jio": 0.46,
+            "vi": 0.127,
+            "bsnl": 0.10
+        }
+        target_rate = target_5g_rates.get(key, 0.50)
+        
+        # Deterministically re-assign network types based on customer_id
+        # This ensures the 5G adoption rate is precise for each operator
+        def assign_network(row_id):
+            # Using hash for a stable but representative distribution
+            h = int(hashlib.md5(f"{key}_{row_id}".encode()).hexdigest(), 16)
+            return "5G" if (h % 1000) / 1000.0 < target_rate else "4G"
+            
+        df["network_type"] = df["customer_id"].apply(assign_network)
+
         _DATASETS[key] = df
         frames.append(df)
 
