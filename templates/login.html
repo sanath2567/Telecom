@@ -57,15 +57,46 @@
             try {
                 const cred = await firebaseAuth.signInWithEmailAndPassword(email, pw);
                 const token = await cred.user.getIdToken();
+
+                // --- Robust Server Sync with Retries ---
+                // This handles the "Token used too early" (401) error 
+                // caused by clock skew between client and server.
+                let roleData = null;
+                let retries = 0;
+                while (retries < 5) {
+                    try {
+                        const res = await fetch('/api/user/usage', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (res.status === 401) {
+                            console.warn(`Sync attempt ${retries + 1} failed (401). Retrying in 400ms...`);
+                            await new Promise(r => setTimeout(r, 400));
+                            retries++;
+                            continue;
+                        }
+                        if (!res.ok) throw new Error("Sync failed");
+                        roleData = await res.json();
+                        break;
+                    } catch (e) {
+                        console.error("Sync error:", e);
+                        await new Promise(r => setTimeout(r, 400));
+                        retries++;
+                    }
+                }
+
+                if (!roleData) throw new Error("Could not synchronize session with server. Please try again.");
+
+                // Clear and set session only AFTER successful sync
+                sessionStorage.clear();
                 sessionStorage.setItem('fbToken', token);
-                sessionStorage.setItem('fbUser', JSON.stringify({ email: cred.user.email, uid: cred.user.uid, displayName: cred.user.displayName }));
+                sessionStorage.setItem('fbUser', JSON.stringify({
+                    email: cred.user.email,
+                    uid: cred.user.uid,
+                    displayName: cred.user.displayName,
+                    ...roleData // Include server-side profile info (like operator)
+                }));
 
-                // Fetch role from backend
-                const roleRes = await fetch('/api/user/usage', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const roleData = await roleRes.json();
-
+                // Intelligent Redirection
                 if (roleData.role === 'ADMIN') {
                     window.location.href = '/admin';
                 } else {

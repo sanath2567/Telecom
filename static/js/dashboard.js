@@ -1,3 +1,4 @@
+let currentRole = 'USER';
 /**
  * dashboard.js — SaaS Analytics Dashboard
  */
@@ -23,8 +24,8 @@ async function api(url, options = {}) {
     return res.json();
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Initial Identity Check
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. Initial Identity UI Setup (Instant)
     let name = fbUser.displayName || fbUser.email?.split('@')[0] || 'Analyst';
     let op = fbUser.operator || '';
 
@@ -35,101 +36,61 @@ document.addEventListener('DOMContentLoaded', async () => {
         fbUser.operator = op;
     }
 
-    // 2. Fetch Extended Profile (Role/Usage)
-    let role = 'USER';
-    try {
-        const usage = await api('/api/user/usage');
-        if (usage) {
-            role = usage.role;
-            // Update trial counters while we have the data
-            document.getElementById('churnTrialsCount').textContent = usage.churn_trials;
-            document.getElementById('fcTrialsCount').textContent = usage.forecast_trials;
-            if (usage.subscription_status === 'FREE') {
-                if (usage.churn_trials >= 4) {
-                    const b = document.getElementById('churnBtn');
-                    if (b) { b.disabled = false; b.innerText = "Upgrade to Pro 🔒"; b.onclick = () => document.getElementById('pricingModal').style.display = 'flex'; }
-                }
-                if (usage.forecast_trials >= 4) {
-                    const b = document.getElementById('forecastBtn');
-                    if (b) { b.disabled = false; b.innerText = "Upgrade to Pro 🔒"; b.onclick = () => document.getElementById('pricingModal').style.display = 'flex'; }
-                }
-            } else if (usage.subscription_status === 'PRO') {
-                // Hide upgrade grid for Pro users
-                document.querySelectorAll('h2').forEach(h2 => {
-                    if (h2.textContent.trim() === 'Platform Subscription') h2.style.display = 'none';
-                });
-                const pGrid = document.querySelector('.pricing-grid');
-                if (pGrid) pGrid.style.display = 'none';
-
-                ['churnTrialInfo', 'fcTrialInfo'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.style.display = 'none';
-                });
-            }
-            if (role === 'ADMIN') {
-                const adminBtn = document.getElementById('nav-admin');
-                if (adminBtn) adminBtn.style.display = 'flex';
-            }
-        }
-    } catch (e) { console.warn("Failed to fetch user usage/role", e); }
-
-    // 3. Conditional Modal for Operators
-    if (!op && role !== 'ADMIN') {
-        document.getElementById('legacyOpModal').style.display = 'flex';
-        return; // Stop further loading until op is selected
-    } else {
-        document.getElementById('legacyOpModal').style.display = 'none';
-    }
-
-    // 4. Update UI
     document.getElementById('userName').textContent = name;
     document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
 
     const roleEl = document.querySelector('.user-role');
-    if (roleEl) {
-        roleEl.textContent = role === 'ADMIN' ? 'System Administrator' : (op ? `${op} Analyst` : 'Analyst');
+    if (roleEl) roleEl.textContent = (op ? `${op} Analyst` : 'Analyst');
+
+    // 2. Conditional Modal for Legacy Users (Non-Admin missing operator)
+    if (!op && currentRole !== 'ADMIN') {
+        document.getElementById('legacyOpModal').style.display = 'flex';
+        startClock(); // Still show clock
+        return;
     }
 
-    // 5. Lock operator dropdowns if relevant (Bypass for ADMIN)
-    if (op && role !== 'ADMIN') {
+    // 3. Start Data Loading (Only if identity is ready)
+    startClock();
+    loadOverview();
+
+    // 4. Background Profile Sync & Trial Update
+    (async () => {
+        try {
+            const usage = await api('/api/user/usage');
+            if (usage) {
+                currentRole = usage.role;
+                if (roleEl) roleEl.textContent = currentRole === 'ADMIN' ? 'System Administrator' : (op ? `${op} Analyst` : 'Analyst');
+
+                // Update trial counters
+                const churnTrials = document.getElementById('churnTrialsCount');
+                const fcTrials = document.getElementById('fcTrialsCount');
+                if (churnTrials) churnTrials.textContent = usage.churn_trials;
+                if (fcTrials) fcTrials.textContent = usage.forecast_trials;
+
+                if (currentRole === 'ADMIN') {
+                    const navAdmin = document.getElementById('nav-admin');
+                    const navRegions = document.getElementById('nav-regions');
+                    if (navAdmin) navAdmin.style.display = 'flex';
+                    if (navRegions) navRegions.style.display = 'none';
+                    loadOverview();
+                }
+            }
+        } catch (e) {
+            if (e.message.includes('401')) {
+                console.warn("Session invalid, logging out");
+                handleLogout();
+            }
+        }
+    })();
+
+    // 5. Operator locking
+    if (op) {
         ['churnOperator', 'fcOperator'].forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.value = op; el.disabled = true; }
         });
-    } else if (role === 'ADMIN') {
-        // Explicitly unlock for ADMIN just in case
-        ['churnOperator', 'fcOperator'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.disabled = false; }
-        });
     }
-
-    // 6. Role-specific UI adjustments
-    if (role === 'ADMIN') {
-        try {
-            // Hide subscription-related UI for Admins
-            document.querySelectorAll('h2').forEach(h2 => {
-                if (h2.textContent.trim() === 'Platform Subscription') h2.style.display = 'none';
-            });
-            const pGrid = document.querySelector('.pricing-grid');
-            if (pGrid) pGrid.style.display = 'none';
-
-            ['churnTrialInfo', 'fcTrialInfo'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = 'none';
-            });
-
-            // Hide Region Monitoring for Admins
-            const regionBtn = document.getElementById('nav-regions');
-            if (regionBtn) regionBtn.style.display = 'none';
-        } catch (e) { console.error("Admin UI sync failed", e); }
-    }
-
-    startClock();
-    loadOverview();
 });
-
-// Role and Trial counters are now handled in the main DOMContentLoaded sequence
 
 async function saveLegacyOperator() {
     const op = document.getElementById('legacyOperatorSelect').value;
@@ -210,64 +171,65 @@ function handleLogout() {
 }
 
 
-// OVERVIEW
+// OVERVIEW - High Performance Streams
 async function loadOverview() {
-    try {
-        const usage = await api('/api/user/usage');
-        const role = usage ? usage.role : 'USER';
+    const op = fbUser.operator ? fbUser.operator.split(' ')[0] : '';
+    const opQuery = (op && currentRole !== 'ADMIN') ? `?op=${encodeURIComponent(op)}` : '';
 
-        const opQuery = (fbUser.operator && role !== 'ADMIN') ? `?op=${encodeURIComponent(fbUser.operator.split(' ')[0])}` : '';
-        const data = await api('/api/overview' + opQuery);
+    // Stream 1: KPI Metrics (Fastest)
+    api('/api/overview' + opQuery).then(data => {
         if (!data) return;
+        animateCounter('kpiTotal', data.total_customers, 0, 1000);
+        animateCounter('kpiCities', data.active_cities, 0, 800);
 
-        animateCounter('kpiTotal', data.total_customers, 0, 1500);
-        animateCounter('kpiCities', data.active_cities, 0, 1000);
-
-        // Calculate 5G adoption% for the KPI
         const totalNet = data.network_4g + data.network_5g;
         const netPct = totalNet > 0 ? Math.round((data.network_5g / totalNet) * 100) : 0;
-        document.getElementById('kpiNet').textContent = netPct + '%';
+        animateCounter('kpiNet', netPct, 0, 800);
 
         document.getElementById('kpiUsage').textContent = data.average_usage.toFixed(1) + '%';
         document.getElementById('kpiStates').textContent = `${data.active_states} states covered`;
         document.getElementById('kpiTrend').textContent = `Demand trend: ${data.demand_trend}%`;
+    }).catch(e => console.error("Metrics fail", e));
 
-        loadOperatorSnapshot();
-        loadRecentCustomers();
-    } catch (e) { console.error(e); }
+    // Stream 2: Operator Snapshot
+    api('/api/operators').then(opData => {
+        if (opData) renderOperatorSnapshot(opData, currentRole);
+    }).catch(e => console.error("Ops fail", e));
+
+    // Stream 3: Customer Table
+    api('/api/customers' + (opQuery ? opQuery + '&limit=10' : '?limit=10')).then(custData => {
+        if (custData) renderCustomerRows(custData, false);
+    }).catch(e => console.error("Table fail", e));
 }
 
 function animateCounter(id, target, from, duration) {
     const el = document.getElementById(id);
     if (!el) return;
+
+    target = Number(target) || 0;
+    const isPercent = id === 'kpiNet';
+
     const start = performance.now();
     requestAnimationFrame(function up(now) {
         const p = Math.min((now - start) / duration, 1);
-        el.textContent = Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3))).toLocaleString('en-IN');
+        // Using ease-out cubic for maximum smoothness
+        const current = Math.round(from + (target - from) * (1 - Math.pow(1 - p, 3)));
+        el.textContent = current.toLocaleString('en-IN') + (isPercent ? '%' : '');
         if (p < 1) requestAnimationFrame(up);
     });
 }
 
-async function loadOperatorSnapshot() {
-    const data = await api('/api/operators');
-    if (!data) return;
+function renderOperatorSnapshot(data, role) {
     const container = document.getElementById('operatorSnapshot');
+    if (!container) return;
     const opColors = { Airtel: '#2563eb', BSNL: '#06b6d4', Jio: '#ef4444', Vi: '#f59e0b' };
-
-    // Only show the user's operator if they have one and are NOT an ADMIN
     let entries = Object.entries(data);
-
-    // Quick role check 
-    const usage = await api('/api/user/usage');
-    const role = usage ? usage.role : 'USER';
-
     if (fbUser.operator && role !== 'ADMIN') {
-        entries = entries.filter(([op, info]) => op === fbUser.operator);
+        entries = entries.filter(([op]) => op === fbUser.operator);
     }
-
     container.innerHTML = entries.map(([op, info]) => `
     <div class="glass-card" style="padding:20px;">
-      <div style="font-weight:700;font-size:1.1rem;color:${opColors[op]};margin-bottom:12px">${op}</div>
+      <div style="font-weight:700;font-size:1.1rem;color:${opColors[op] || 'var(--accent)'};margin-bottom:12px">${op}</div>
       <div style="display:flex;justify-content:space-between;margin-bottom:6px;font-size:0.9rem">
         <span style="color:var(--text-muted)">Customers</span><span style="font-weight:600">${info.customers.toLocaleString('en-IN')}</span>
       </div>
