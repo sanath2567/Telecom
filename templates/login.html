@@ -59,7 +59,18 @@
                 const token = await cred.user.getIdToken();
                 sessionStorage.setItem('fbToken', token);
                 sessionStorage.setItem('fbUser', JSON.stringify({ email: cred.user.email, uid: cred.user.uid, displayName: cred.user.displayName }));
-                window.location.href = '/dashboard';
+
+                // Fetch role from backend
+                const roleRes = await fetch('/api/user/usage', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const roleData = await roleRes.json();
+
+                if (roleData.role === 'ADMIN') {
+                    window.location.href = '/admin';
+                } else {
+                    window.location.href = '/dashboard';
+                }
             } catch (err) {
                 document.getElementById('authError').textContent = err.message || 'Login failed';
                 document.getElementById('authError').style.display = 'block';

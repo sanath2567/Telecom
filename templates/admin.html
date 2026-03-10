@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Panel — Telco Operator Intelligence Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+</head>
+
+<body class="dashboard-body">
+
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <span class="brand-icon">◈</span>
+            <span class="brand-name">TelcoIQ Admin</span>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item active" id="nav-sessions" onclick="showAdminSection('sessions')">
+                <span>Active Sessions</span>
+            </button>
+            <button class="nav-item" id="nav-users" onclick="showAdminSection('users')">
+                <span>All Registered Users</span>
+            </button>
+            <button class="nav-item" onclick="window.location.href='/dashboard'">
+                <span>Back to Dashboard</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button class="nav-item" style="color:var(--red)" onclick="handleLogout()">
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-content">
+        <header class="top-header">
+            <div>
+                <h1 class="page-title">Admin Monitoring</h1>
+                <p class="page-subtitle">Real-time user session and activity tracking</p>
+                <p style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">Last updated: <span
+                        id="lastUpdateTime">—</span></p>
+            </div>
+            <div class="header-right">
+                <div id="headerTime"></div>
+            </div>
+        </header>
+
+        <main class="dash-section" id="section-sessions">
+            <div class="kpi-grid" style="margin-bottom:24px;">
+                <div class="kpi-card glass-card">
+                    <div class="kpi-label">Total Users</div>
+                    <div class="kpi-value" id="kpiTotalUsers">0</div>
+                    <div class="kpi-trend" style="color:var(--text-muted)">Registered in system</div>
+                </div>
+                <div class="kpi-card glass-card">
+                    <div class="kpi-label">Active Now</div>
+                    <div class="kpi-value" id="kpiActiveNow" style="color:var(--green)">0</div>
+                    <div class="kpi-trend" style="color:var(--green)">Live sessions</div>
+                </div>
+            </div>
+
+            <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:16px;">Active User Sessions</h2>
+            <div class="table-wrapper">
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User Email</th>
+                                <th>Role</th>
+                                <th>Login Time</th>
+                                <th>Last Activity</th>
+                                <th>IP Address</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sessionTableBody">
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
+                                    sessions...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <main class="dash-section" id="section-users" style="display:none">
+            <h2 style="font-size:1.1rem;font-weight:600;margin-bottom:16px;">All Registered Users</h2>
+            <div class="table-wrapper">
+                <div style="overflow-x:auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User Email</th>
+                                <th>Role</th>
+                                <th>Created At</th>
+                                <th>UID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted)">Loading
+                                    users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const fbToken = sessionStorage.getItem('fbToken');
+        if (!fbToken) window.location.href = '/login';
+
+        function handleLogout() {
+            sessionStorage.clear();
+            window.location.href = '/';
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats', {
+                    headers: { 'Authorization': `Bearer ${fbToken}` }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+                document.getElementById('kpiTotalUsers').textContent = data.total_users;
+                document.getElementById('kpiActiveNow').textContent = data.active_sessions;
+            } catch (e) { }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch('/api/admin/users', {
+                    headers: { 'Authorization': `Bearer ${fbToken}` }
+                });
+                if (!res.ok) throw new Error('Failed to fetch users');
+                const data = await res.json();
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = data.map(u => `
+                    <tr>
+                        <td style="font-weight:600">${u.email}</td>
+                        <td><span class="status-badge ${u.role === 'ADMIN' ? 'status-good' : 'status-warning'}">${u.role}</span></td>
+                        <td>${new Date(u.created_at).toLocaleString()}</td>
+                        <td style="font-family:monospace; font-size:0.8rem">${u.uid}</td>
+                    </tr>
+                `).join('');
+            } catch (err) { console.error(err); }
+        }
+
+        async function loadSessions() {
+            try {
+                const res = await fetch('/api/admin/sessions', {
+                    headers: { 'Authorization': `Bearer ${fbToken}` }
+                });
+                if (res.status === 401 || res.status === 403) {
+                    alert('Access Denied: You do not have administrator privileges.');
+                    window.location.href = '/dashboard';
+                    return;
+                }
+                if (!res.ok) throw new Error('Failed to fetch sessions');
+                const data = await res.json();
+
+                const tbody = document.getElementById('sessionTableBody');
+                tbody.innerHTML = data.map(s => `
+                    <tr>
+                        <td style="font-weight:600">${s.email}</td>
+                        <td><span class="status-badge ${s.role === 'ADMIN' ? 'status-good' : 'status-warning'}">${s.role}</span></td>
+                        <td>${new Date(s.login_time).toLocaleString()}</td>
+                        <td>${new Date(s.last_activity).toLocaleString()}</td>
+                        <td>${s.ip_address || '—'}</td>
+                        <td><span class="status-badge status-good">${s.status}</span></td>
+                    </tr>
+                `).join('');
+                document.getElementById('lastUpdateTime').textContent = new Date().toLocaleTimeString();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function showAdminSection(name) {
+            document.querySelectorAll('.dash-section').forEach(s => s.style.display = 'none');
+            document.getElementById(`section-${name}`).style.display = 'block';
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.getElementById(`nav-${name}`).classList.add('active');
+
+            if (name === 'users') loadUsers();
+            if (name === 'sessions') loadSessions();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+            loadSessions();
+            setInterval(loadStats, 10000);
+            setInterval(loadSessions, 10000); // Faster refresh (10s)
+
+            function tick() {
+                document.getElementById('headerTime').textContent = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+            }
+            tick();
+            setInterval(tick, 30000);
+        });
+    </script>
+</body>
+
+</html>

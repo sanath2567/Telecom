@@ -220,8 +220,8 @@ a {
 }
 
 /* ═══════════════════════════════════════════════
-   LANDING & AUTH
-   ═══════════════════════════════════════════════ */
+    LANDING & AUTH
+    ═══════════════════════════════════════════════ */
 .landing-body,
 .auth-body {
   background: var(--bg-main);
@@ -478,8 +478,8 @@ a {
 }
 
 /* ═══════════════════════════════════════════════
-   DASHBOARD
-   ═══════════════════════════════════════════════ */
+    DASHBOARD
+    ═══════════════════════════════════════════════ */
 .dashboard-body {
   background: var(--bg-main);
   display: flex;
@@ -1114,4 +1114,137 @@ a {
   font-size: 0.95rem;
   color: var(--text-muted);
   line-height: 1.6;
+}
+
+/* ─── Pricing Section ────────────────────────── */
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.pricing-card {
+  padding: 32px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+
+.pricing-card.featured {
+  border: 2px solid var(--accent);
+  box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.1);
+  transform: scale(1.02);
+}
+
+.plan-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+
+.plan-price {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+}
+
+.plan-price span {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.plan-features {
+  list-style: none;
+  margin-bottom: 32px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plan-features li {
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.plan-features li::before {
+  content: '✓';
+  color: var(--green);
+  font-weight: 800;
+}
+
+/* ─── Responsiveness Extras ────────────────────── */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 80px;
+  }
+
+  .brand-name,
+  .user-name,
+  .user-role,
+  .nav-item span {
+    display: none;
+  }
+
+  .sidebar-header,
+  .sidebar-user,
+  .nav-item {
+    justify-content: center;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .two-col-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .top-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+/* --- Insight Items (Forecasting) ---------------- */
+.insight-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.3s ease;
+}
+.insight-item:last-child { margin-bottom: 0; }
+.insight-item.info { background: rgba(37, 99, 235, 0.08); border-left: 4px solid #2563eb; }
+.insight-item.success { background: rgba(34, 197, 94, 0.08); border-left: 4px solid #22c55e; }
+.insight-item.warning { background: rgba(239, 68, 68, 0.12); border-left: 4px solid #ef4444; }
+.insight-item.caution { background: rgba(245, 158, 11, 0.12); border-left: 4px solid #f59e0b; }
+
+.insight-icon { font-size: 1.1rem; }
+.insight-text { color: var(--text-main); font-weight: 500; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
 }

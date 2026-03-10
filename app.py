@@ -12,6 +12,10 @@ import firebase_admin
 from firebase_admin import credentials, auth as fb_auth
 
 import data_utils
+import db_utils
+
+import data_utils
+import db_utils
 
 # ─────────────────────────────────────────────
 # App Initialization
@@ -27,6 +31,9 @@ if os.path.exists(_SA_KEY):
     firebase_admin.initialize_app(cred)
     FIREBASE_ENABLED = True
     print("[Firebase] Admin SDK initialized from serviceAccountKey.json")
+    
+    # Init Firestore default admin if required
+    db_utils.init_db()
 else:
     # Demo mode — Firebase verification skipped (for local dev without key)
     FIREBASE_ENABLED = False
@@ -43,20 +50,28 @@ data_utils.load_ml_models()
 
 def verify_token():
     """Extract and verify Firebase ID token from Authorization header."""
+    user = None
     if not FIREBASE_ENABLED:
         # Demo mode: return mock user
-        return {"uid": "demo-user", "email": "demo@telco.com"}, None
+        user = {"uid": "demo-user", "email": "demo@telco.com"}
+    else:
+        auth_header = request.headers.get("Authorization", "")
+        if not auth_header.startswith("Bearer "):
+            return None, (jsonify({"error": "Unauthorized — missing token"}), 401)
 
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        return None, (jsonify({"error": "Unauthorized — missing token"}), 401)
+        id_token = auth_header.split("Bearer ")[1].strip()
+        try:
+            user = fb_auth.verify_id_token(id_token)
+        except Exception as e:
+            return None, (jsonify({"error": f"Unauthorized — {str(e)}"}), 401)
 
-    id_token = auth_header.split("Bearer ")[1].strip()
-    try:
-        decoded = fb_auth.verify_id_token(id_token)
-        return decoded, None
-    except Exception as e:
-        return None, (jsonify({"error": f"Unauthorized — {str(e)}"}), 401)
+    if user:
+        # Sync user and update session persistence
+        db_utils.sync_user(user["uid"], user["email"])
+        db_utils.update_session(user["uid"], request.remote_addr)
+        return user, None
+    
+    return None, (jsonify({"error": "Unauthorized"}), 401)
 
 
 def firebase_required(f):
@@ -66,6 +81,22 @@ def firebase_required(f):
         user, err = verify_token()
         if err:
             return err
+        request.firebase_user = user
+        return f(*args, **kwargs)
+    return decorated
+
+
+def admin_required(f):
+    """Decorator that enforces Admin role."""
+    @functools.wraps(f)
+    def decorated(*args, **kwargs):
+        user, err = verify_token()
+        if err: return err
+        
+        role = db_utils.get_user_role(user["uid"])
+        if role != "ADMIN":
+            return jsonify({"error": "Forbidden — Admin access required"}), 403
+            
         request.firebase_user = user
         return f(*args, **kwargs)
     return decorated
@@ -214,6 +245,14 @@ def api_areas():
 @app.route("/api/predict_churn_latency", methods=["POST"])
 @firebase_required
 def api_predict_churn_latency():
+    user = request.firebase_user
+    usage = db_utils.get_usage(user["uid"])
+    
+    # Trial enforcement (Bypassed for ADMIN)
+    role = db_utils.get_user_role(user["uid"])
+    if role != "ADMIN" and usage["subscription_status"] == "FREE" and usage["churn_trials"] >= 4:
+        return jsonify({"error": "trial_expired", "message": "You have reached the limit of 4 free churn predictions. Please upgrade to Pro."}), 403
+
     body = request.get_json(force=True) or {}
     operator        = body.get("operator", "")
     state           = body.get("state", "")
@@ -235,6 +274,10 @@ def api_predict_churn_latency():
         months_active=months_active,
         issues_resolved=issues_resolved
     )
+    
+    # Increment usage
+    db_utils.increment_usage(user["uid"], "churn")
+    
     return jsonify(result)
 
 
@@ -245,6 +288,14 @@ def api_predict_churn_latency():
 @app.route("/api/forecast", methods=["POST"])
 @firebase_required
 def api_forecast():
+    user = request.firebase_user
+    usage = db_utils.get_usage(user["uid"])
+    
+    # Trial enforcement (Bypassed for ADMIN)
+    role = db_utils.get_user_role(user["uid"])
+    if role != "ADMIN" and usage["subscription_status"] == "FREE" and usage["forecast_trials"] >= 4:
+        return jsonify({"error": "trial_expired", "message": "You have reached the limit of 4 free demand forecasts. Please upgrade to Pro."}), 403
+
     body = request.get_json(force=True) or {}
     operator = body.get("operator", "")
     state    = body.get("state", "")
@@ -259,7 +310,43 @@ def api_forecast():
         return jsonify({"error": "state, city, and area are required"}), 400
 
     result = data_utils.generate_forecast(operator, state, city, area, days)
+    
+    # Increment usage
+    db_utils.increment_usage(user["uid"], "forecast")
+    
     return jsonify(result)
+
+
+# ─────────────────────────────────────────────
+# API: Admin
+# ─────────────────────────────────────────────
+
+@app.route("/admin")
+def admin_page():
+    return render_template("admin.html")
+
+@app.route("/api/admin/sessions")
+@admin_required
+def api_admin_sessions():
+    return jsonify(db_utils.get_session_data())
+
+@app.route("/api/admin/stats")
+@admin_required
+def api_admin_stats():
+    return jsonify(db_utils.get_admin_stats())
+
+@app.route("/api/admin/users")
+@admin_required
+def api_admin_users():
+    return jsonify(db_utils.get_all_users())
+
+@app.route("/api/user/usage")
+@firebase_required
+def api_user_usage():
+    user = request.firebase_user
+    usage = db_utils.get_usage(user["uid"])
+    usage["role"] = db_utils.get_user_role(user["uid"])
+    return jsonify(usage)
 
 
 # ─────────────────────────────────────────────

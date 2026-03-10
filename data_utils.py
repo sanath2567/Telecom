@@ -479,9 +479,13 @@ def predict_churn_latency(operator: str, state: str, network_type: str, plan_typ
     churn_prob = min(max(score * 100 + np.random.uniform(-5, 5), 5.0), 98.0)
     confidence = 88.5 + np.random.uniform(-2, 2) # Constant high confidence for "ML" look
 
+    latency_min = max(0, latency_pred - np.random.uniform(5, 10))
+    latency_max = latency_pred + np.random.uniform(5, 15)
+
     return {
         "churn_probability_pct": round(churn_prob, 1),
         "predicted_latency_ms": round(latency_pred, 1),
+        "latency_range": f"{round(latency_min, 1)} - {round(latency_max, 1)}",
         "confidence_score": round(confidence, 1),
         "is_ml_model": True,
         "operator": operator
@@ -579,6 +583,96 @@ def generate_forecast(operator: str, state: str, city: str, area: str, days: int
     demands = [p["demand"] for p in series]
     peak_idx = int(np.argmax(demands))
     growth = round(((demands[-1] - demands[0]) / demands[0] * 100), 1) if len(demands) > 0 and demands[0] > 0 else 0
+    
+    # 3. GENERATE INSIGHTS
+    insights = []
+    
+    # Check for overall negative trend
+    if growth < 0:
+        insights.append({
+            "type": "warning", 
+            "text": f"Negative demand trend detected ({growth}%). Revenue risk identified."
+        })
+        insights.append({
+            "text": "Insight: Demand is projected to decrease. Check for local infrastructure issues or increased competition in the area."
+        })
+    elif growth > 10:
+        insights.append({
+            "type": "success", 
+            "text": f"Positive demand growth predicted ({growth}%). Scale capacity to meet future needs."
+        })
+    else:
+        insights.append({"type": "info", "text": "Stable demand outlook for the selected period."})
+
+    # Check for specific "Negative Sections" (Dips below starting value)
+    dips = [p for p in series if p["demand"] < demands[0]]
+    if dips:
+        insights.append({
+            "type": "caution",
+            "text": f"Graph shows demand dipping below baseline starting on {dips[0]['date']}. Suggestion: Run targeted local promotions during this projected dip."
+        })
+
+    # Find critical low throughput periods
+    critical_points = [p for p in series if p["demand"] < (np.mean(demands) * 0.6)]
+    if critical_points:
+        insights.append({
+            "type": "warning",
+            "text": f"Critical drop shown on {critical_points[0]['date']}. Suggestion: Verify if any planned local outages or network maintenance overlap with this date."
+        })
+
+    # --- DYNAMIC STRATEGIC SUGGESTIONS BASED ON GRAPH ---
+    if growth > 10:
+        insights.append({
+            "type": "success",
+            "text": f"High Growth ({growth}%): Network demand is surging rapidly."
+        })
+        insights.append({
+            "type": "info",
+            "text": "👍 Good Suggestion: Monitor peak hour traffic closely to prevent temporary congestion and ensure QoS for premium users."
+        })
+        insights.append({
+            "type": "info",
+            "text": f"🚀 Best Suggestion: Immediately initiate capacity expansion (e.g., cell splitting or adding 5G carriers) in {area} before the projected peak on {series[peak_idx]['date']}."
+        })
+    elif growth > 2:
+        insights.append({
+            "type": "success",
+            "text": f"Moderate Growth ({growth}%): Steady increase in network demand."
+        })
+        insights.append({
+            "type": "info",
+            "text": "👍 Good Suggestion: Optimize existing antenna tilts and transmission power to comfortably accommodate the steady user influx."
+        })
+        insights.append({
+            "type": "info",
+            "text": f"🚀 Best Suggestion: Schedule backhaul infrastructure upgrades for {city} in the next quarter to stay ahead of the demand curve sustainably."
+        })
+    elif growth >= -2:
+        insights.append({
+            "type": "info",
+            "text": f"Stable Demand ({growth}%): Network usage is plateauing."
+        })
+        insights.append({
+            "type": "info",
+            "text": "👍 Good Suggestion: Perform routine network maintenance and software updates during projected low-usage periods (e.g., 2 AM - 4 AM)."
+        })
+        insights.append({
+            "type": "info",
+            "text": "🚀 Best Suggestion: Perform an audit to see if excess bandwidth from this sector can be dynamically reallocated to neighboring high-growth areas."
+        })
+    else:
+        insights.append({
+            "type": "warning",
+            "text": f"Demand Decline ({growth}%): Network usage is dropping significantly."
+        })
+        insights.append({
+            "type": "caution",
+            "text": "👍 Good Suggestion: Analyze local competitor 5G campaigns and review recent customer support tickets regarding coverage in this area."
+        })
+        insights.append({
+            "type": "caution",
+            "text": f"🚀 Best Suggestion: Launch targeted retention plans for {operator} users in {area} and urgently inspect local macro sites for unflagged hardware faults."
+        })
 
     return {
         "series":          series,
@@ -586,6 +680,7 @@ def generate_forecast(operator: str, state: str, city: str, area: str, days: int
         "peak_demand":     round(float(max(demands)), 2),
         "peak_date":       series[peak_idx]["date"],
         "growth_trend_pct": growth,
+        "insights":        insights,
         "days":            days,
         "unit":            "Mbps" # Throughput as specified in Dataset_3
     }

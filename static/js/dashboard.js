@@ -23,8 +23,8 @@ async function api(url, options = {}) {
     return res.json();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Extract operator from displayName if persisted as "Name|Operator"
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Initial Identity Check
     let name = fbUser.displayName || fbUser.email?.split('@')[0] || 'Analyst';
     let op = fbUser.operator || '';
 
@@ -32,41 +32,92 @@ document.addEventListener('DOMContentLoaded', () => {
         const parts = name.split('|');
         name = parts[0];
         op = parts[1];
-    } else if (!fbUser.operator) {
-        // LEGACY USER detected: show modal, stop data fetching
-        document.getElementById('legacyOpModal').style.display = 'flex';
-        return;
+        fbUser.operator = op;
     }
 
+    // 2. Fetch Extended Profile (Role/Usage)
+    let role = 'USER';
+    try {
+        const usage = await api('/api/user/usage');
+        if (usage) {
+            role = usage.role;
+            // Update trial counters while we have the data
+            document.getElementById('churnTrialsCount').textContent = usage.churn_trials;
+            document.getElementById('fcTrialsCount').textContent = usage.forecast_trials;
+            if (usage.subscription_status === 'FREE') {
+                if (usage.churn_trials >= 4) {
+                    const b = document.getElementById('churnBtn');
+                    if (b) { b.disabled = true; b.innerText = "Trial Expired"; }
+                }
+                if (usage.forecast_trials >= 4) {
+                    const b = document.getElementById('forecastBtn');
+                    if (b) { b.disabled = true; b.innerText = "Trial Expired"; }
+                }
+            }
+            if (role === 'ADMIN') {
+                const adminBtn = document.getElementById('nav-admin');
+                if (adminBtn) adminBtn.style.display = 'flex';
+            }
+        }
+    } catch (e) { console.warn("Failed to fetch user usage/role", e); }
+
+    // 3. Conditional Modal for Operators
+    if (!op && role !== 'ADMIN') {
+        document.getElementById('legacyOpModal').style.display = 'flex';
+        return; // Stop further loading until op is selected
+    } else {
+        document.getElementById('legacyOpModal').style.display = 'none';
+    }
+
+    // 4. Update UI
     document.getElementById('userName').textContent = name;
     document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
 
-    // Show operator role if available
     const roleEl = document.querySelector('.user-role');
     if (roleEl) {
-        roleEl.textContent = op ? `${op} Analyst` : 'Analyst';
+        roleEl.textContent = role === 'ADMIN' ? 'System Administrator' : (op ? `${op} Analyst` : 'Analyst');
     }
 
-    // Attach op to fbUser for later use
-    fbUser.operator = op;
+    // 5. Lock operator dropdowns if relevant (Bypass for ADMIN)
+    if (op && role !== 'ADMIN') {
+        ['churnOperator', 'fcOperator'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.value = op; el.disabled = true; }
+        });
+    } else if (role === 'ADMIN') {
+        // Explicitly unlock for ADMIN just in case
+        ['churnOperator', 'fcOperator'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.disabled = false; }
+        });
+    }
 
-    // Lock operator dropdowns if the user belongs to an operator
-    if (op) {
-        const churnOp = document.getElementById('churnOperator');
-        if (churnOp) {
-            churnOp.value = op;
-            churnOp.disabled = true;
-        }
-        const fcOp = document.getElementById('fcOperator');
-        if (fcOp) {
-            fcOp.value = op;
-            fcOp.disabled = true;
-        }
+    // 6. Role-specific UI adjustments
+    if (role === 'ADMIN') {
+        try {
+            // Hide subscription-related UI for Admins
+            document.querySelectorAll('h2').forEach(h2 => {
+                if (h2.textContent.trim() === 'Platform Subscription') h2.style.display = 'none';
+            });
+            const pGrid = document.querySelector('.pricing-grid');
+            if (pGrid) pGrid.style.display = 'none';
+
+            ['churnTrialInfo', 'fcTrialInfo'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+
+            // Hide Region Monitoring for Admins
+            const regionBtn = document.getElementById('nav-regions');
+            if (regionBtn) regionBtn.style.display = 'none';
+        } catch (e) { console.error("Admin UI sync failed", e); }
     }
 
     startClock();
     loadOverview();
 });
+
+// Role and Trial counters are now handled in the main DOMContentLoaded sequence
 
 async function saveLegacyOperator() {
     const op = document.getElementById('legacyOperatorSelect').value;
@@ -150,7 +201,10 @@ function handleLogout() {
 // OVERVIEW
 async function loadOverview() {
     try {
-        const opQuery = fbUser.operator ? `?op=${encodeURIComponent(fbUser.operator.split(' ')[0])}` : '';
+        const usage = await api('/api/user/usage');
+        const role = usage ? usage.role : 'USER';
+
+        const opQuery = (fbUser.operator && role !== 'ADMIN') ? `?op=${encodeURIComponent(fbUser.operator.split(' ')[0])}` : '';
         const data = await api('/api/overview' + opQuery);
         if (!data) return;
 
@@ -188,9 +242,14 @@ async function loadOperatorSnapshot() {
     const container = document.getElementById('operatorSnapshot');
     const opColors = { Airtel: '#2563eb', BSNL: '#06b6d4', Jio: '#ef4444', Vi: '#f59e0b' };
 
-    // Only show the user's operator if they have one
+    // Only show the user's operator if they have one and are NOT an ADMIN
     let entries = Object.entries(data);
-    if (fbUser.operator) {
+
+    // Quick role check 
+    const usage = await api('/api/user/usage');
+    const role = usage ? usage.role : 'USER';
+
+    if (fbUser.operator && role !== 'ADMIN') {
         entries = entries.filter(([op, info]) => op === fbUser.operator);
     }
 
@@ -348,7 +407,7 @@ async function runChurnPrediction() {
     btn.innerText = "Predicting..."; btn.disabled = true;
     try {
         const body = {
-            operator: fbUser.operator || '',
+            operator: document.getElementById('churnOperator') ? document.getElementById('churnOperator').value : (fbUser.operator || ''),
             state: state,
             network_type: network,
             plan_type: plan,
@@ -361,7 +420,7 @@ async function runChurnPrediction() {
         document.getElementById('churnEmpty').style.display = 'none';
         document.getElementById('churnResults').style.display = 'flex';
 
-        document.getElementById('rLatency').textContent = data.predicted_latency_ms + " ms";
+        document.getElementById('rLatency').textContent = (data.latency_range || data.predicted_latency_ms) + " ms";
 
         // Binary Churn Status (0/1)
         const binaryChurn = data.churn_probability_pct > 50 ? 1 : 0;
@@ -391,8 +450,35 @@ async function runChurnPrediction() {
         const chartW = document.querySelector('#churnResults .chart-wrapper');
         if (chartW) chartW.style.display = 'none';
 
+        // Refresh trial counters
+        updateTrialCountersInternal();
+
     } catch (e) { alert("Prediction failed"); console.error(e); }
     btn.innerText = "Run Prediction"; btn.disabled = false;
+}
+
+// Internal helper for trial counters
+async function updateTrialCountersInternal() {
+    try {
+        const usage = await api('/api/user/usage');
+        if (usage) {
+            const churnTrial = document.getElementById('churnTrialsCount');
+            const fcTrial = document.getElementById('fcTrialsCount');
+            if (churnTrial) churnTrial.textContent = usage.churn_trials;
+            if (fcTrial) fcTrial.textContent = usage.forecast_trials;
+
+            if (usage.subscription_status === 'FREE') {
+                if (usage.churn_trials >= 4) {
+                    const b = document.getElementById('churnBtn');
+                    if (b) { b.disabled = true; b.innerText = "Trial Expired"; }
+                }
+                if (usage.forecast_trials >= 4) {
+                    const b = document.getElementById('forecastBtn');
+                    if (b) { b.disabled = true; b.innerText = "Trial Expired"; }
+                }
+            }
+        }
+    } catch (e) { }
 }
 
 // FORECAST
@@ -460,6 +546,22 @@ async function runForecast() {
                 }
             }
         });
+        // Render Insights
+        const insightsContainer = document.getElementById('forecastInsights');
+        const insightsList = document.getElementById('insightsList');
+        if (insightsContainer && insightsList && data.insights) {
+            insightsList.innerHTML = data.insights.map(inn => `
+                <div class="insight-item ${inn.type || 'info'}">
+                    <span class="insight-icon">${inn.type === 'warning' ? '⚠' : inn.type === 'success' ? '✓' : 'ℹ'}</span>
+                    <span class="insight-text">${inn.text}</span>
+                </div>
+            `).join('');
+            insightsContainer.style.display = 'block';
+        }
+
+        // Refresh trial counters
+        updateTrialCountersInternal();
+
     } catch (e) { alert("Failed"); }
     btn.innerText = "Generate Forecast"; btn.disabled = false;
 }
