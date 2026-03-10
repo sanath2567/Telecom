@@ -12,13 +12,18 @@
 <body class="landing-body">
   <nav class="landing-nav">
     <div class="nav-brand">
-      <span class="brand-icon">◈</span>
       <span class="brand-name">TelcoIQ</span>
     </div>
-    <div class="nav-links">
+    <button class="mobile-menu-toggle" id="menuToggle">
+      <i data-lucide="menu"></i>
+    </button>
+    <div class="nav-links" id="navLinks">
       <a href="/" class="nav-link active">Home</a>
       <a href="/about" class="nav-link">About</a>
       <a href="/contact" class="nav-link">Contact</a>
+      <div class="mobile-only-actions" style="display: none; margin-top: 20px;">
+        <a href="/login" class="btn btn-primary btn-full">Sign In</a>
+      </div>
     </div>
     <div class="nav-actions">
       <a href="/login" class="btn btn-ghost">Sign In</a>
@@ -27,54 +32,195 @@
   </nav>
 
   <main class="hero-section">
-    <div class="hero-content">
-      <h1 class="hero-title">
-        Enterprise Telecom<br />
-        <span class="gradient-text">Operations Intelligence</span>
-      </h1>
-      <p class="hero-subtitle">
-        The most powerful analytics suite for Indian network operators.<br />
-        Monitor performance, predict churn, and forecast demand with ML.
-      </p>
-      <div class="hero-cta">
-        <a href="/login" class="btn btn-primary btn-lg">Login to Dashboard</a>
-        <a href="/signup" class="btn btn-outline btn-lg">Partner With Us</a>
-      </div>
+    <div class="hero-content"></div>
+    <h1 class="hero-title">
+      Network Intelligence for<br />
+      <span style="color: var(--accent);">Modern Telecom Operations</span>
+    </h1>
+    <p class="hero-subtitle">
+      Real-time analytics and predictive insights to help telecom operators monitor network performance, understand
+      subscriber behavior, and optimize service delivery.
+    </p>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-top: -10px; margin-bottom: 30px; font-weight: 500;">
+      Transform telecom data into actionable intelligence across regions, customers, and network infrastructure.
+    </p>
+    <div class="hero-cta">
+      <a href="/signup" class="btn btn-primary btn-lg">Get Started Now</a>
+      <a href="#capabilities" class="btn btn-outline btn-lg">View Capabilities</a>
+      <a href="/login" class="btn btn-primary btn-lg">Login to Dashboard</a>
+    </div>
     </div>
   </main>
 
-  <section class="landing-features">
-    <h2 class="section-title">Built for Modern Operators</h2>
-    <div class="features-grid container">
+  <section class="container" style="padding: 100px 0;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+      <div class="tag">Platform Overview</div>
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 24px;">A Data Intelligence Layer for Telecom
+        Networks</h2>
+      <p style="color: var(--text-muted); line-height: 1.8; font-size: 1.1rem;">
+        Modern telecom networks generate massive volumes of operational and subscriber data. This platform consolidates
+        network and customer insights into a unified analytics environment, enabling operators to monitor network
+        conditions, evaluate service demand, and improve operational efficiency.
+      </p>
+    </div>
+  </section>
+
+  <section class="stagger-section" style="background: var(--bg-hover);">
+    <div class="container stagger-grid">
+      <div class="stagger-content">
+        <div class="tag">Operational Intelligence</div>
+        <h3 class="stagger-title">Operational Visibility Across the Network</h3>
+        <p class="stagger-text">
+          Gain deeper visibility into telecom operations through structured analytics and regional monitoring. The
+          platform enables teams to track network activity across geographic regions, understand customer usage
+          behavior, and detect operational trends that impact service quality.
+        </p>
+      </div>
+      <div class="stagger-visual">
+        <div class="glass-card"
+          style="width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; background: #fff;">
+          <i data-lucide="activity" style="width: 64px; height: 64px; color: var(--accent); opacity: 0.5;"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stagger-section">
+    <div class="container stagger-grid reverse">
+      <div class="stagger-content">
+        <div class="tag">Predictive Analytics</div>
+        <h3 class="stagger-title">Predictive Insights for Telecom Decision-Making</h3>
+        <p class="stagger-text">
+          Advanced analytics models analyze telecom datasets to identify churn risk patterns, forecast regional service
+          demand, and support proactive network planning. These insights allow operators to anticipate changes in
+          subscriber behavior and respond more effectively to market dynamics.
+        </p>
+      </div>
+      <div class="stagger-visual">
+        <div class="glass-card"
+          style="width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; background: #fff;">
+          <i data-lucide="brain-circuit" style="width: 64px; height: 64px; color: var(--accent); opacity: 0.5;"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="stagger-section" style="background: var(--bg-hover);">
+    <div class="container stagger-grid">
+      <div class="stagger-content">
+        <div class="tag">Regional Monitoring</div>
+        <h3 class="stagger-title">Regional Performance Monitoring</h3>
+        <p class="stagger-text">
+          Monitor telecom network performance across states, cities, and local service areas. The platform provides
+          regional visibility into subscriber distribution, usage patterns, and potential network congestion zones,
+          helping teams prioritize infrastructure improvements.
+        </p>
+      </div>
+      <div class="stagger-visual">
+        <div class="glass-card"
+          style="width: 100%; height: 350px; display: flex; align-items: center; justify-content: center; background: #fff;">
+          <i data-lucide="map" style="width: 64px; height: 64px; color: var(--accent); opacity: 0.5;"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="container" style="padding: 100px 0; text-align: center;">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <div class="tag">Strategic Insights</div>
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 24px;">Supporting Data-Driven Telecom Operations
+      </h2>
+      <p style="color: var(--text-muted); line-height: 1.8; font-size: 1.1rem;">
+        Telecom providers rely on data to maintain service reliability, improve customer experience, and optimize
+        network capacity. By combining customer analytics, operational monitoring, and predictive insights, the platform
+        supports informed decision-making across telecom operations.
+      </p>
+    </div>
+  </section>
+
+  <section class="landing-features" id="capabilities" style="background: #fff;">
+    <h2 class="section-title">Core Platform Capabilities</h2>
+    <div class="features-grid container" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="users" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Telecom subscriber analytics</h3>
+      </div>
       <div class="glass-card feature-card">
         <div class="feature-icon-wrapper">
           <i data-lucide="radio" class="feature-icon"></i>
         </div>
-        <h3 class="feature-name">Regional Monitoring</h3>
-        <p class="feature-desc">Real-time tracking of signal strength (dBm), latency, and city-level throughput metrics
-          across India.</p>
+        <h3 class="feature-name">Regional network activity monitoring</h3>
       </div>
       <div class="glass-card feature-card">
         <div class="feature-icon-wrapper">
           <i data-lucide="trending-down" class="feature-icon"></i>
         </div>
-        <h3 class="feature-name">Predictive Churn</h3>
-        <p class="feature-desc">Sophisticated ML models identifying high-risk segments before they leave, with localized
-          risk scoring.</p>
+        <h3 class="feature-name">Customer churn prediction</h3>
+      </div>
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="bar-chart-big" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Demand forecasting across service regions</h3>
       </div>
       <div class="glass-card feature-card">
         <div class="feature-icon-wrapper">
           <i data-lucide="activity" class="feature-icon"></i>
         </div>
-        <h3 class="feature-name">Demand Forecasting</h3>
-        <p class="feature-desc">Advanced SARIMAX predictions for data throughput, enabling proactive network resource
-          allocation.</p>
+        <h3 class="feature-name">Operator performance analysis</h3>
       </div>
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="line-chart" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Network congestion identification</h3>
+      </div>
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="shield-check" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Service quality assurance</h3>
+      </div>
+      <div class="glass-card feature-card">
+        <div class="feature-icon-wrapper">
+          <i data-lucide="cloud" class="feature-icon"></i>
+        </div>
+        <h3 class="feature-name">Cloud infrastructure optimization</h3>
+      </div>
+    </div>
+  </section>
+
+  <section class="container" style="padding: 120px 0; text-align: center; border-top: 1px solid var(--border);">
+    <div style="max-width: 800px; margin: 0 auto;">
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 24px;">Driving Intelligent Telecom Operations</h2>
+      <p style="color: var(--text-muted); line-height: 1.8; font-size: 1.1rem; margin-bottom: 40px;">
+        As telecom networks continue to expand in scale and complexity, data analytics plays an increasingly critical
+        role in operational planning and customer management. This platform demonstrates how telecom data can be
+        transformed into actionable insights that support more efficient network operations and better service outcomes.
+      </p>
+      <a href="/signup" class="btn btn-primary btn-lg">Get Started with TelcoIQ</a>
     </div>
   </section>
 
   <script>
     lucide.createIcons();
+
+    // Mobile Menu Toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    menuToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+      const icon = menuToggle.querySelector('i');
+      if (navLinks.classList.contains('active')) {
+        icon.setAttribute('data-lucide', 'x');
+      } else {
+        icon.setAttribute('data-lucide', 'menu');
+      }
+      lucide.createIcons();
+    });
   </script>
 
   <style>

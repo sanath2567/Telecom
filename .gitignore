@@ -9,6 +9,7 @@ venv.bak/
 
 # Sensitive Files
 serviceAccountKey.json
+telecom_models_dictionary.pkl
 *.log
 *.pot
 *.pyc

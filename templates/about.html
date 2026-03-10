@@ -15,7 +15,10 @@
             <span class="brand-icon">◈</span>
             <span class="brand-name">TelcoIQ</span>
         </div>
-        <div class="nav-links">
+        <button class="mobile-menu-toggle" id="menuToggle">
+            <i data-lucide="menu"></i>
+        </button>
+        <div class="nav-links" id="navLinks">
             <a href="/" class="nav-link">Home</a>
             <a href="/about" class="nav-link active">About</a>
             <a href="/contact" class="nav-link">Contact</a>
@@ -29,13 +32,14 @@
     <main class="about-container">
         <section class="about-hero">
             <div class="container">
-                <h1 class="hero-title-small">About TelcoIQ</h1>
-                <h2 class="hero-main-title">Redefining Telecom Intelligence for the <span class="gradient-text">Next
-                        Generation</span></h2>
+                <h1 class="hero-title-small">Platform Overview</h1>
+                <h2 class="hero-main-title">A Specialized <span class="gradient-text">Telecom Analytics</span> Ecosystem
+                </h2>
                 <p class="hero-text">
-                    TelcoIQ is building the intelligence layer for India's telecommunications infrastructure.
-                    By bridging the gap between raw network data and executive decision-making, we empower operators
-                    to deliver world-class connectivity.
+                    This platform is a telecom analytics system designed to analyze operator data and generate insights
+                    about network performance, customer behavior, and demand trends. It helps telecom companies
+                    understand customer usage patterns, detect potential churn risks, and monitor regional service
+                    demand.
                 </p>
             </div>
         </section>
@@ -43,23 +47,20 @@
         <section class="stagger-section">
             <div class="container stagger-grid">
                 <div class="stagger-content">
-                    <div class="tag">Our Vision</div>
-                    <h3 class="stagger-title">Universal Connectivity, Smarter Operations</h3>
+                    <div class="tag">The Problem We Solve</div>
+                    <h3 class="stagger-title">Supporting Smarter Decision-Making in Large-Scale Networks</h3>
                     <p class="stagger-text">
-                        We believe that connectivity is a fundamental right. Our platform ensures that operators like
-                        Airtel, Jio, and BSNL can maximize their network availability while minimizing operational
-                        overhead
-                        through automated, predictive analytics.
+                        Telecom companies manage millions of customers across multiple regions. Understanding network
+                        demand, customer churn, and regional performance is essential for improving service quality and
+                        reducing revenue loss.
+                        This platform demonstrates how data analytics can be used to analyze telecom datasets and
+                        support smarter decision-making.
                     </p>
-                    <ul class="stagger-list">
-                        <li><i data-lucide="check-circle"></i> Real-time Network Health Monitoring</li>
-                        <li><i data-lucide="check-circle"></i> AI-Driven Customer Retention</li>
-                        <li><i data-lucide="check-circle"></i> Proactive Infrastructure Scaling</li>
-                    </ul>
                 </div>
                 <div class="stagger-visual glass-card">
-                    <div class="visual-placeholder"><i data-lucide="cpu"
-                            style="width:48px;height:48px;color:var(--accent)"></i></div>
+                    <div class="visual-placeholder">
+                        <i data-lucide="help-circle" style="width:64px;height:64px;color:var(--accent)"></i>
+                    </div>
                 </div>
             </div>
         </section>
@@ -67,31 +68,100 @@
         <section class="tech-stack">
             <div class="container">
                 <div class="tech-header">
-                    <h2 class="tech-title">Our Technology</h2>
-                    <p class="tech-subtitle">Precision engineering meets massive scale data processing.</p>
+                    <h2 class="tech-title">Platform Features</h2>
+                    <p class="tech-subtitle">Core capabilities for comprehensive operator intelligence.</p>
                 </div>
                 <div class="tech-grid">
                     <div class="tech-card glass-card">
-                        <i data-lucide="bar-chart-3" class="tech-icon"></i>
-                        <h4>SARIMAX Models</h4>
-                        <p>Advanced seasonal demand forecasting for gigabit-scale data throughput.</p>
+                        <i data-lucide="users" class="tech-icon"></i>
+                        <h4>Telecom Customer Analytics</h4>
+                        <p>Analyze usage patterns and behavioral data of thousands of network subscribers.</p>
+                    </div>
+                    <div class="glass-card feature-card">
+                        <div class="feature-icon-wrapper" style="margin-bottom: 20px;">
+                            <i data-lucide="trending-down" class="feature-icon"
+                                style="color: var(--accent); width: 32px; height: 32px;"></i>
+                        </div>
+                        <h4 style="margin-bottom: 12px; font-weight: 700;">Churn Risk Prediction</h4>
+                        <p style="font-size: 0.9rem; color: var(--text-muted);">Identify high-risk customers likely to
+                            disconnect or port to other operators.</p>
                     </div>
                     <div class="tech-card glass-card">
-                        <i data-lucide="shield-check" class="tech-icon"></i>
-                        <h4>ML Scoring</h4>
-                        <p>Proprietary algorithms for hyper-accurate churn risk classification.</p>
+                        <i data-lucide="bar-chart-big" class="tech-icon"></i>
+                        <h4>Regional Demand Forecasting</h4>
+                        <p>Predict future network service demand to optimize infrastructure investments.</p>
                     </div>
                     <div class="tech-card glass-card">
-                        <i data-lucide="map-pin" class="tech-icon"></i>
-                        <h4>Geo-Analytics</h4>
-                        <p>Localized network performance tracking at the city and area level.</p>
+                        <i data-lucide="activity" class="tech-icon"></i>
+                        <h4>Operator Comparison</h4>
+                        <p>Benchmarking performance metrics across major industry competitors.</p>
+                    </div>
+                    <div class="tech-card glass-card">
+                        <i data-lucide="map" class="tech-icon"></i>
+                        <h4>Region Monitoring</h4>
+                        <p>Real-time visualization of network health across multiple geographical circles.</p>
                     </div>
                 </div>
             </div>
         </section>
+
+        <section class="tech-stack" style="background: #fff;">
+            <div class="container">
+                <div class="tech-header">
+                    <h2 class="tech-title">Technology Stack</h2>
+                    <p class="tech-subtitle">Engineered with high-performance frameworks.</p>
+                </div>
+                <div class="tech-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="glass-card" style="padding: 24px;">
+                        <h4 style="color: var(--accent); margin-bottom: 10px;">Backend</h4>
+                        <p style="font-size: 0.9rem;">Python & Flask for robust API development and server management.
+                        </p>
+                    </div>
+                    <div class="glass-card" style="padding: 24px;">
+                        <h4 style="color: var(--accent); margin-bottom: 10px;">Authentication</h4>
+                        <p style="font-size: 0.9rem;">Firebase Authentication for secure and scalable user login.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 24px;">
+                        <h4 style="color: var(--accent); margin-bottom: 10px;">Data Engine</h4>
+                        <p style="font-size: 0.9rem;">Pandas & Scikit-Learn for advanced data processing and ML.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 24px;">
+                        <h4 style="color: var(--accent); margin-bottom: 10px;">Visualization</h4>
+                        <p style="font-size: 0.9rem;">Chart.js for interactive, high-fidelity data visualization.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="container" style="padding: 100px 0; text-align: center;">
+            <h2 class="section-title">Data Source Insight</h2>
+            <p style="color: var(--text-muted); max-width: 800px; margin: 0 auto; line-height: 1.8;">
+                The platform analyzes telecom datasets containing customer usage patterns, service tenure, network
+                activity, and churn indicators across multiple telecom operators.
+                These datasets are used to simulate telecom analytics scenarios including churn prediction and demand
+                forecasting, ensuring valid and representative system outputs.
+            </p>
+        </section>
     </main>
 
-    <script>lucide.createIcons();</script>
+    <script>
+        lucide.createIcons();
+
+        // Mobile Menu Toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const navLinks = document.getElementById('navLinks');
+
+        menuToggle.addEventListener('click', () => {
+            navLinks.classList.toggle('active');
+            const icon = menuToggle.querySelector('i');
+            if (navLinks.classList.contains('active')) {
+                icon.setAttribute('data-lucide', 'x');
+            } else {
+                icon.setAttribute('data-lucide', 'menu');
+            }
+            lucide.createIcons();
+        });
+    </script>
 
     <style>
         .about-container {
