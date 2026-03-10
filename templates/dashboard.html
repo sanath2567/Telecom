@@ -81,9 +81,9 @@
                     <div class="kpi-trend" style="color:var(--text-muted)" id="kpiStates">— states covered</div>
                 </div>
                 <div class="kpi-card glass-card">
-                    <div class="kpi-label">High-Risk Churn Users</div>
-                    <div class="kpi-value" id="kpiChurn" style="color:var(--red)">—</div>
-                    <div class="kpi-trend" style="color:var(--red)">Require immediate action</div>
+                    <div class="kpi-label">5G Adoption Rate</div>
+                    <div class="kpi-value" id="kpiNet" style="color:var(--cyan)">—</div>
+                    <div class="kpi-trend" style="color:var(--green)">High speed penetration</div>
                 </div>
                 <div class="kpi-card glass-card">
                     <div class="kpi-label">Avg. Network Usage</div>
@@ -105,7 +105,7 @@
                                 <th>City</th>
                                 <th>Plan Details</th>
                                 <th>Months Active</th>
-                                <th>Risk Status</th>
+                                <th>Network</th>
                             </tr>
                         </thead>
                         <tbody id="customerTableBody">
@@ -221,7 +221,7 @@
                             <div class="rkpi-value" id="rLatency" style="color:var(--cyan)">— ms</div>
                         </div>
                         <div class="result-kpi glass-card">
-                            <div class="rkpi-label">Churn Probability</div>
+                            <div class="rkpi-label">Churn Status (0/1)</div>
                             <div class="rkpi-value" id="rChurnRate" style="color:var(--red)">—</div>
                         </div>
                         <div class="result-kpi glass-card" id="confidenceWrapper">
@@ -230,18 +230,20 @@
                         </div>
                     </div>
 
-                    <div class="risk-cards">
-                        <div class="risk-card risk-low">
-                            <div class="risk-val" id="rLow" style="color:var(--green)">—</div>
-                            <div class="risk-label">Low Risk</div>
+                    <div class="network-cards"
+                        style="display:grid; grid-template-columns: 1fr 1fr; gap:16px; margin-bottom:24px;">
+                        <div class="glass-card"
+                            style="padding:20px; text-align:center; border-bottom:4px solid var(--accent);">
+                            <div id="rSignalQuality" style="font-size:1.5rem; font-weight:800; color:var(--accent);">—
+                            </div>
+                            <div style="color:var(--text-muted); font-size:0.8rem; font-weight:600;">Signal Quality
+                            </div>
                         </div>
-                        <div class="risk-card risk-mid">
-                            <div class="risk-val" id="rMid" style="color:var(--yellow)">—</div>
-                            <div class="risk-label">Medium Risk</div>
-                        </div>
-                        <div class="risk-card risk-high">
-                            <div class="risk-val" id="rHigh" style="color:var(--red)">—</div>
-                            <div class="risk-label">High Risk</div>
+                        <div class="glass-card"
+                            style="padding:20px; text-align:center; border-bottom:4px solid var(--cyan);">
+                            <div id="rThroughput" style="font-size:1.5rem; font-weight:800; color:var(--cyan);">—</div>
+                            <div style="color:var(--text-muted); font-size:0.8rem; font-weight:600;">Est. Throughput
+                            </div>
                         </div>
                     </div>
 

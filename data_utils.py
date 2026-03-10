@@ -233,6 +233,8 @@ def compute_overview(operator_key: str = None):
         "high_risk_churn_users": high_risk,
         "average_usage": avg_usage,
         "demand_trend": demand_trend,
+        "network_4g": int((df["network_type"] == "4G").sum()),
+        "network_5g": int((df["network_type"] == "5G").sum()),
     }
 
 

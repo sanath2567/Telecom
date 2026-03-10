@@ -156,7 +156,12 @@ async function loadOverview() {
 
         animateCounter('kpiTotal', data.total_customers, 0, 1500);
         animateCounter('kpiCities', data.active_cities, 0, 1000);
-        animateCounter('kpiChurn', data.high_risk_churn_users, 0, 1500);
+
+        // Calculate 5G adoption% for the KPI
+        const totalNet = data.network_4g + data.network_5g;
+        const netPct = totalNet > 0 ? Math.round((data.network_5g / totalNet) * 100) : 0;
+        document.getElementById('kpiNet').textContent = netPct + '%';
+
         document.getElementById('kpiUsage').textContent = data.average_usage.toFixed(1) + '%';
         document.getElementById('kpiStates').textContent = `${data.active_states} states covered`;
         document.getElementById('kpiTrend').textContent = `Demand trend: ${data.demand_trend}%`;
@@ -223,13 +228,13 @@ async function loadRecentCustomers() {
 function renderCustomerRows(data, append = false) {
     const tbody = document.getElementById('customerTableBody');
     const html = data.map(r => {
-        const rCls = r.status === 'High Risk' ? 'status-critical' : 'status-good';
+        const netCls = r.plan.includes('5G') ? 'status-good' : 'status-warning';
         return `<tr>
             <td style="font-weight:600">ID-${r.customer_id.toString().padStart(6, '0')}</td>
             <td>${r.city}</td>
             <td>${r.plan}</td>
             <td>${r.months_active}</td>
-            <td><span class="status-badge ${rCls}">${r.status}</span></td>
+            <td><span class="status-badge ${netCls}">${r.plan.includes('5G') ? '5G' : '4G'}</span></td>
         </tr>`;
     }).join('');
 
@@ -357,12 +362,32 @@ async function runChurnPrediction() {
         document.getElementById('churnResults').style.display = 'flex';
 
         document.getElementById('rLatency').textContent = data.predicted_latency_ms + " ms";
-        document.getElementById('rChurnRate').textContent = data.churn_probability_pct + "%";
+
+        // Binary Churn Status (0/1)
+        const binaryChurn = data.churn_probability_pct > 50 ? 1 : 0;
+        const churnEl = document.getElementById('rChurnRate');
+        churnEl.textContent = binaryChurn;
+        churnEl.style.color = binaryChurn === 1 ? 'var(--red)' : 'var(--green)';
+
+        // Performance Metrics Calculation
+        let quality = "Poor";
+        if (signal >= -70) quality = "Excellent";
+        else if (signal >= -85) quality = "Good";
+        else if (signal >= -100) quality = "Fair";
+
+        document.getElementById('rSignalQuality').textContent = quality;
+
+        const baseTp = network === "5G" ? 300 : 50;
+        const signalFactor = Math.max(0.1, (signal + 110) / 50); // -110 to -60 map to 0.1 to 1.0
+        const estThroughput = Math.round(baseTp * signalFactor);
+        document.getElementById('rThroughput').textContent = estThroughput + " Mbps";
 
         const confidenceEl = document.getElementById('rConfidence');
         if (confidenceEl) {
             confidenceEl.textContent = data.confidence_score + "%";
         }
+
+        // Hide distribution chart as risk status is removed
         const chartW = document.querySelector('#churnResults .chart-wrapper');
         if (chartW) chartW.style.display = 'none';
 
