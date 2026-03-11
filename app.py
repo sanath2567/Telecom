@@ -275,8 +275,9 @@ def api_predict_churn_latency():
         issues_resolved=issues_resolved
     )
     
-    # Increment usage
-    db_utils.increment_usage(user["uid"], "churn")
+    # Increment usage (Bypassed for ADMIN)
+    if role != "ADMIN":
+        db_utils.increment_usage(user["uid"], "churn")
     
     return jsonify(result)
 
@@ -311,8 +312,9 @@ def api_forecast():
 
     result = data_utils.generate_forecast(operator, state, city, area, days)
     
-    # Increment usage
-    db_utils.increment_usage(user["uid"], "forecast")
+    # Increment usage (Bypassed for ADMIN)
+    if role != "ADMIN":
+        db_utils.increment_usage(user["uid"], "forecast")
     
     return jsonify(result)
 

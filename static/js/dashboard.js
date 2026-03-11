@@ -1,4 +1,4 @@
-let currentRole = 'USER';
+let currentRole = JSON.parse(sessionStorage.getItem('fbUser') || '{}').role || 'USER';
 /**
  * dashboard.js — SaaS Analytics Dashboard
  */
@@ -49,6 +49,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    if (currentRole === 'ADMIN') {
+        const navAdmin = document.getElementById('nav-admin');
+        const navRegions = document.getElementById('nav-regions');
+        if (navAdmin) navAdmin.style.display = 'flex';
+        if (navRegions) navRegions.style.display = 'none';
+        if (roleEl) roleEl.textContent = 'System Administrator';
+    }
+
     // 3. Start Data Loading (Only if identity is ready)
     startClock();
     loadOverview();
@@ -72,6 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const navRegions = document.getElementById('nav-regions');
                     if (navAdmin) navAdmin.style.display = 'flex';
                     if (navRegions) navRegions.style.display = 'none';
+
+                    // Hide trial info for admins
+                    const ctInfo = document.getElementById('churnTrialInfo');
+                    const fcInfo = document.getElementById('fcTrialInfo');
+                    if (ctInfo) ctInfo.style.display = 'none';
+                    if (fcInfo) fcInfo.style.display = 'none';
+
                     loadOverview();
                 }
             }
@@ -173,8 +188,8 @@ function handleLogout() {
 
 // OVERVIEW - High Performance Streams
 async function loadOverview() {
-    const op = fbUser.operator ? fbUser.operator.split(' ')[0] : '';
-    const opQuery = (op && currentRole !== 'ADMIN') ? `?op=${encodeURIComponent(op)}` : '';
+    // Admins always see global data
+    const opQuery = (currentRole === 'ADMIN') ? '' : (fbUser.operator ? `?op=${encodeURIComponent(fbUser.operator.split(' ')[0])}` : '');
 
     // Stream 1: KPI Metrics (Fastest)
     api('/api/overview' + opQuery).then(data => {
@@ -441,7 +456,7 @@ async function updateTrialCountersInternal() {
             if (churnTrial) churnTrial.textContent = usage.churn_trials;
             if (fcTrial) fcTrial.textContent = usage.forecast_trials;
 
-            if (usage.subscription_status === 'FREE') {
+            if (usage.subscription_status === 'FREE' && currentRole !== 'ADMIN') {
                 if (usage.churn_trials >= 4) {
                     const b = document.getElementById('churnBtn');
                     if (b) { b.disabled = false; b.innerText = "Upgrade to Pro 🔒"; b.onclick = () => document.getElementById('pricingModal').style.display = 'flex'; }
